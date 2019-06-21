@@ -7,23 +7,6 @@ import { Githubcount } from '../imports/api/repo.js';
 import { Githubitems } from '../imports/api/repo.js';
 import { Githubcommits } from '../imports/api/repo.js';
 
-var searchUrl; //store the next page of repo the get
-var firstupdate;	//bool to check if the github total repo is needed to be updated
-var newreposids;	//to store the repoids from the latest update
-var commitUrl;	//store the commit_url
-var tmpcount;	//store the no. of commits temperory 
-var done;	//bool to check if all commit is calculated
-var RepoUpdated;  //bool to check if the repo is updated porperly
-
-function Reset() {
-	searchUrl = "https://api.github.com/search/repositories?q=cardano&sort=stars&order=desc&page=1&per_page=100";
-	firstupdate = true;
-	commitUrl = "";
-	tmpcount = 0;
-	done = false;
-	newreposids = [];
-	RepoUpdated = false;
-}
 
 function parse_link_header(header) {
 	if (header.length === 0) {
@@ -48,17 +31,75 @@ function parse_link_header(header) {
 
 Meteor.startup(() => {
 	//code to run on server at startup
-	SyncedCron.add({
-		name: 'Update githubdata everyday at 0401',
-		schedule: function (parser) {
-			// parser is a later.parse object
-			return parser.text('at 04:01am everyday');
-		},
-		job: () => updateGithubRepos.call({}, (err, data) => { })
-	});
-	SyncedCron.start();
+	// SyncedCron.add({
+	// 	name: 'Update githubdata everyday at 0401',
+	// 	schedule: function (parser) {
+	// 		// parser is a later.parse object
+	// 		return parser.text('at 04:01am everyday');
+	// 	},
+	// 	job: () => updateGithubRepos.call({}, (err, data) => { })
+	// });
+	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
+	//Meteor.call('getCoinList');
+
 });
+
+
+Meteor.methods({
+	getCoinList: () => {
+		HTTP.call(
+			'GET',
+			'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
+			{},
+			(err, resp) => {
+				if (!err) {
+					resp.data.forEach(element => {
+						var coinName = element.name.toLowerCase();
+						var pageNumber = 1;
+						console.log("start calling")
+						Meteor.call('searchGithubRepos', coinName, pageNumber, true);
+					});
+				}
+				else {
+					console.log(err);
+				}
+			})
+	},
+	searchGithubRepos: (coinName, pageNumber, firstCall) => {
+		var url = "https://api.github.com/search/repositories?q=" + coinName + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
+		HTTP.call("GET",
+			url,
+			{
+				headers: {
+					"User-Agent": "ioioio8888"
+				}
+			},
+			(err, resp) => {
+				if (resp && resp.statusCode === 200) {
+					// Insert each repo into the repos collection
+					if (firstCall) {
+						Githubcount.insert({
+							coinName: coinName,
+							repoTotalCount: resp.data.total_count,
+							time: Date.now(),
+						});
+					}
+					var nextUrl = parse_link_header(resp.headers.link).next;
+					if (nextUrl == undefined) {
+						console.log("end");
+						return;
+					}
+					console.log("call again");
+					Meteor.call('searchGithubRepos', pageNumber+1, false);
+				}
+			}
+		);
+
+	}
+
+})
+
 
 
 export const updateGithubRepos = new ValidatedMethod({
