@@ -39,8 +39,8 @@ Meteor.startup(() => {
 	// });
 	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
-	Meteor.call('getCoinListCoinMarketCap');
-
+	//Meteor.call('getCoinListCoinMarketCap');
+	Meteor.call('searchAllGithubRepos');
 });
 
 
@@ -60,6 +60,7 @@ Meteor.methods({
 			(err,resp) => {
 				if(!err){
 					resp.data.data.forEach(element => {
+						//store all coins into collection for later use
 						AllCoins.upsert({
 							name: element.name
 						},
@@ -68,7 +69,7 @@ Meteor.methods({
 							slug: element.slug,
 						});
 					})
-					console.log("done");
+					console.log("store list done");
 				}
 				else{
 					console.log(err);
@@ -76,27 +77,35 @@ Meteor.methods({
 			}
 			)
 	},
-	getCoinList: () => {
-		HTTP.call(
-			'GET',
-			'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
-			{},
-			(err, resp) => {
-				if (!err) {
-					resp.data.forEach(element => {
-						var coinName = element.name.toLowerCase();
-						var pageNumber = 1;
-						console.log("start calling")
-						Meteor.call('searchGithubRepos', coinName, pageNumber, true);
-					});
-				}
-				else {
-					console.log(err);
-				}
+	// getCoinList: () => {
+	// 	HTTP.call(
+	// 		'GET',
+	// 		'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
+	// 		{},
+	// 		(err, resp) => {
+	// 			if (!err) {
+	// 				resp.data.forEach(element => {
+	// 					var coinName = element.name.toLowerCase();
+	// 					var pageNumber = 1;
+	// 					console.log("start calling");
+	// 					Meteor.call('searchGithubRepos', coinName, pageNumber, true);
+	// 				});
+	// 			}
+	// 			else {
+	// 				console.log(err);
+	// 			}
+	// 		})
+	// },
+	searchAllGithubRepos: () =>{
+		const coinNames = AllCoins.find({"slug": "cardano"}).fetch();
+		coinNames.forEach((coinName)=>{ //will exceed 5000 calls per hour.
+				var pageNumber = 1;
+				console.log("start getting github repos for "+ coinName.slug);
+				Meteor.call('searchGithubRepos',coinName.slug, pageNumber, true);
 			})
 	},
-	searchGithubRepos: (coinName, pageNumber, firstCall) => {
-		var url = "https://api.github.com/search/repositories?q=" + coinName + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
+	searchGithubRepos: (coinSlug, pageNumber, firstCall) => {
+		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
@@ -105,22 +114,51 @@ Meteor.methods({
 				}
 			},
 			(err, resp) => {
+				if(err){
+					console.log(err);
+					return;
+				}
 				if (resp && resp.statusCode === 200) {
 					// Insert each repo into the repos collection
 					if (firstCall) {
 						Githubcount.insert({
-							coinName: coinName,
+							coinSlug: coinSlug,
 							repoTotalCount: resp.data.total_count,
 							time: Date.now(),
 						});
 					}
+					for (const repo of resp.data.items) {
+						//update the mongodatabase for the repo
+						Githubitems.upsert(
+							{
+								repoId: repo.id
+							},
+							{
+								coinSlug: coinSlug,
+								repoId: repo.id,
+								name: repo.name,
+								full_name: repo.full_name,
+								description: repo.description,
+								url: repo.html_url,
+								commits_url: repo.commits_url.slice(0, -6) + "?per_page=100",
+								open_issues_count: repo.open_issues_count,
+								size : repo.size,
+								stargazers_count: repo.stargazers_count,
+								watchers_count: repo.watchers_count,
+								forks_count: repo.forks_count,
+								pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
+							}
+						);
+
+					}
+
 					var nextUrl = parse_link_header(resp.headers.link).next;
 					if (nextUrl == undefined) {
-						console.log("end");
+						console.log("end for " + coinSlug);
 						return;
 					}
-					console.log("call again for" + coinName);
-					Meteor.call('searchGithubRepos', pageNumber+1, false);
+					// console.log("call again for " + coinSlug);
+					Meteor.call('searchGithubRepos',coinSlug ,pageNumber+1, false);
 				}
 			}
 		);
