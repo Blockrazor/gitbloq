@@ -3,9 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import { Githubcount } from '../imports/api/repo.js';
-import { Githubitems } from '../imports/api/repo.js';
-import { Githubcommits } from '../imports/api/repo.js';
+import { Githubcommits, Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -41,12 +39,43 @@ Meteor.startup(() => {
 	// });
 	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
-	//Meteor.call('getCoinList');
+	Meteor.call('getCoinListCoinMarketCap');
 
 });
 
 
 Meteor.methods({
+	getCoinListCoinMarketCap:()=>{
+		HTTP.call(
+			'GET',
+			'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
+			{
+			params: {
+					'limit': '5000',
+			},
+			headers: {
+				'X-CMC_PRO_API_KEY': '5e801824-f58d-4994-a34e-19ba135e0edb'
+			  }
+			},
+			(err,resp) => {
+				if(!err){
+					resp.data.data.forEach(element => {
+						AllCoins.upsert({
+							name: element.name
+						},
+						{
+							name: element.name,
+							slug: element.slug,
+						});
+					})
+					console.log("done");
+				}
+				else{
+					console.log(err);
+				}
+			}
+			)
+	},
 	getCoinList: () => {
 		HTTP.call(
 			'GET',
@@ -90,7 +119,7 @@ Meteor.methods({
 						console.log("end");
 						return;
 					}
-					console.log("call again");
+					console.log("call again for" + coinName);
 					Meteor.call('searchGithubRepos', pageNumber+1, false);
 				}
 			}
