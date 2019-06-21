@@ -13,7 +13,8 @@ Template.body.onCreated(function bodyOnCreated() {
   //this.state = new ReactiveDict();
   Meteor.subscribe('githubcommits'); 
   Meteor.subscribe('githubitems');
-  Meteor.subscribe('githubcount');
+	Meteor.subscribe('githubcount');
+	Meteor.subscribe('allcoins');
 });
 
 
