@@ -39,88 +39,231 @@ Meteor.startup(() => {
 	// });
 	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
-	Meteor.call('getCoinListCoinMarketCap');
+	// Meteor.call('getCoinListCoinMarketCap');
 
+	// Meteor.call('searchAllGithubRepos');
+	Meteor.call("getAllCommitCount");
 });
 
 
 Meteor.methods({
-	getCoinListCoinMarketCap:()=>{
+	getCoinListCoinMarketCap: () => {
 		HTTP.call(
 			'GET',
 			'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
 			{
-			params: {
+				params: {
 					'limit': '5000',
+				},
+				headers: {
+					'X-CMC_PRO_API_KEY': '5e801824-f58d-4994-a34e-19ba135e0edb'
+				}
 			},
-			headers: {
-				'X-CMC_PRO_API_KEY': '5e801824-f58d-4994-a34e-19ba135e0edb'
-			  }
-			},
-			(err,resp) => {
-				if(!err){
+			(err, resp) => {
+				if (!err) {
 					resp.data.data.forEach(element => {
+						//store all coins into collection for later use
 						AllCoins.upsert({
 							name: element.name
 						},
-						{
-							name: element.name,
-							slug: element.slug,
-						});
+							{
+								name: element.name,
+								slug: element.slug,
+							});
 					})
-					console.log("done");
-				}
-				else{
-					console.log(err);
-				}
-			}
-			)
-	},
-	getCoinList: () => {
-		HTTP.call(
-			'GET',
-			'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
-			{},
-			(err, resp) => {
-				if (!err) {
-					resp.data.forEach(element => {
-						var coinName = element.name.toLowerCase();
-						var pageNumber = 1;
-						console.log("start calling")
-						Meteor.call('searchGithubRepos', coinName, pageNumber, true);
-					});
+					console.log("store list done");
 				}
 				else {
 					console.log(err);
 				}
-			})
+			}
+		)
 	},
-	searchGithubRepos: (coinName, pageNumber, firstCall) => {
-		var url = "https://api.github.com/search/repositories?q=" + coinName + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
+	// getCoinList: () => {
+	// 	HTTP.call(
+	// 		'GET',
+	// 		'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
+	// 		{},
+	// 		(err, resp) => {
+	// 			if (!err) {
+	// 				resp.data.forEach(element => {
+	// 					var coinName = element.name.toLowerCase();
+	// 					var pageNumber = 1;
+	// 					console.log("start calling");
+	// 					Meteor.call('searchGithubRepos', coinName, pageNumber, true);
+	// 				});
+	// 			}
+	// 			else {
+	// 				console.log(err);
+	// 			}
+	// 		})
+	// },
+	searchAllGithubRepos: () => {
+		const coinNames = AllCoins.find({ "slug": "cardano" }).fetch(); //only for cardano now
+		var interval = 1000; // how much time should the delay between two iterations be (in milliseconds)?
+		var promise = Promise.resolve();
+		coinNames.forEach((coinName) => { //will exceed 5000 calls per hour.
+			var pageNumber = 1;
+			console.log("start getting github repos for " + coinName.slug);
+			promise = promise.then(function () {
+				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, true);
+				return new Promise(function (resolve) {
+					setTimeout(resolve, interval);
+				});
+			});
+		})
+		promise.then(function () {
+			console.log("all coin's repo are updated");
+		});
+	},
+	searchGithubRepos: (coinSlug, pageNumber, firstCall) => {
+		s
+		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
 				headers: {
-					"User-Agent": "ioioio8888"
+					"User-Agent": "ioioio8888",
+					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
 				}
 			},
 			(err, resp) => {
+				if (err) {
+					console.log(err);
+					return;
+				}
 				if (resp && resp.statusCode === 200) {
 					// Insert each repo into the repos collection
 					if (firstCall) {
 						Githubcount.insert({
-							coinName: coinName,
+							coinSlug: coinSlug,
 							repoTotalCount: resp.data.total_count,
 							time: Date.now(),
 						});
 					}
+					for (const repo of resp.data.items) {
+						//update the mongodatabase for the repo
+						Githubitems.upsert(
+							{
+								repoId: repo.id
+							},
+							{
+								coinSlug: coinSlug,
+								repoId: repo.id,
+								name: repo.name,
+								full_name: repo.full_name,
+								description: repo.description,
+								url: repo.html_url,
+								commits_url: repo.commits_url.slice(0, -6) + "?per_page=100",
+								open_issues_count: repo.open_issues_count,
+								size: repo.size,
+								stargazers_count: repo.stargazers_count,
+								watchers_count: repo.watchers_count,
+								forks_count: repo.forks_count,
+								pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
+								commits_count: 0,
+							}
+						);
+
+					}
+
 					var nextUrl = parse_link_header(resp.headers.link).next;
 					if (nextUrl == undefined) {
-						console.log("end");
+						console.log("end for " + coinSlug);
 						return;
 					}
-					console.log("call again for" + coinName);
-					Meteor.call('searchGithubRepos', pageNumber+1, false);
+					// console.log("call again for " + coinSlug);
+					Meteor.call('searchGithubRepos', coinSlug, pageNumber + 1, false);
+				}
+			}
+		);
+	},
+	getAllCommitCount: () => {
+		var allRepos = Githubitems.find({ "coinSlug": "cardano" }).fetch(); //only for Cardano Now
+		var interval = 1000; // how much time should the delay between two iterations be (in milliseconds)?
+		var promise = Promise.resolve();
+
+		allRepos.forEach((repo, index) => {
+			promise = promise.then(function () {
+				Meteor.call("gitHubUrlCount", repo.commits_url, 1, repo.repoId, 0, 1);
+				return new Promise(function (resolve) {
+					setTimeout(resolve, interval);
+				});
+			});
+		})
+
+		promise.then(function () {
+			console.log("all commits counts are updated");
+		});
+	},
+	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt) => {
+		var requesturl = url + "&page=" + pageNumber;
+		HTTP.get(
+			requesturl,
+			{
+				headers: {
+					"User-Agent": "ioioio8888",
+					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
+				}
+			},
+			(err, resp) => {
+				if (resp.statusCode == 409) {
+					//repo is empty
+					console.log("empty repo: " + Id);
+					return;
+				}
+				if (err) {
+					console.log(err);
+					return;
+				}
+				if (resp && resp.statusCode === 200) {
+					if (attempt == 1) {
+						var link;
+						try {
+							link = parse_link_header(resp.headers.link).last;
+						}
+						catch (error) { }
+						if (link == undefined) //which means there are less then 100 commits in this response and calculate the no. of commits in this page
+						{
+							var Jresp = JSON.parse(resp.content);
+							tmpcount += Jresp.length;
+							console.log("total :" + tmpcount + "for repoId :" + Id);
+							Githubitems.upsert(
+								{
+									repoId: Id
+								},
+								{
+									$set: {
+										commits_count: tmpcount
+									}
+								},
+								{ multi: true }
+							);
+						}
+						else //which means there are 100 commits in this response, get the last page - 1 and multiply it by 100, to get the number of commits before the last page
+						{
+							var match = /[(\&)]([^=]+)\=([^&#]+)/.exec(link);
+							var page = match[2] - 1;
+							tmpcount += page * 100;
+							Meteor.call("gitHubUrlCount", url, match[2], Id, tmpcount, 2);
+						}
+					}
+					else if (attempt == 2) { // add the commits in the last page with the previous result
+						var Jresp = JSON.parse(resp.content);
+						tmpcount += Jresp.length;
+						console.log("total :" + tmpcount + "for repoId :" + Id);
+						Githubitems.upsert(
+							{
+								repoId: Id
+							},
+							{
+								$set: {
+									commits_count: tmpcount
+								}
+							},
+							{ multi: true }
+						);
+					}
 				}
 			}
 		);
@@ -129,8 +272,7 @@ Meteor.methods({
 
 })
 
-
-
+//old code below
 export const updateGithubRepos = new ValidatedMethod({
 	name: "updateGithubRepos",
 	validate: null,
@@ -278,7 +420,8 @@ function CallGitHubSearchApi() {
 			searchUrl,
 			{
 				headers: {
-					"User-Agent": "emurgo/bot"
+					"User-Agent": "ioioio8888",
+					"Authorization": "17d33eb46192e72b372f588e2b8ee0ae4dcb25f5",
 				}
 			},
 			(err, resp) => {
