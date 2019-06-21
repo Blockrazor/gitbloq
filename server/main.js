@@ -42,7 +42,7 @@ Meteor.startup(() => {
 	// Meteor.call('getCoinListCoinMarketCap');
 
 	// Meteor.call('searchAllGithubRepos');
-	// Meteor.call("getAllCommitCount");
+	Meteor.call("getAllCommitCount");
 });
 
 
@@ -100,20 +100,31 @@ Meteor.methods({
 	// },
 	searchAllGithubRepos: () => {
 		const coinNames = AllCoins.find({ "slug": "cardano" }).fetch(); //only for cardano now
+		var interval = 1000; // how much time should the delay between two iterations be (in milliseconds)?
+		var promise = Promise.resolve();
 		coinNames.forEach((coinName) => { //will exceed 5000 calls per hour.
 			var pageNumber = 1;
 			console.log("start getting github repos for " + coinName.slug);
-			Meteor.call('searchGithubRepos', coinName.slug, pageNumber, true);
+			promise = promise.then(function () {
+				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, true);
+				return new Promise(function (resolve) {
+					setTimeout(resolve, interval);
+				});
+			});
 		})
+		promise.then(function () {
+			console.log("all coin's repo are updated");
+		});
 	},
 	searchGithubRepos: (coinSlug, pageNumber, firstCall) => {
+		s
 		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token 17d33eb46192e72b372f588e2b8ee0ae4dcb25f5",
+					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
 				}
 			},
 			(err, resp) => {
@@ -169,11 +180,21 @@ Meteor.methods({
 	},
 	getAllCommitCount: () => {
 		var allRepos = Githubitems.find({ "coinSlug": "cardano" }).fetch(); //only for Cardano Now
+		var interval = 1000; // how much time should the delay between two iterations be (in milliseconds)?
+		var promise = Promise.resolve();
 
-		allRepos.forEach((repo)=>{
-			Meteor.call("gitHubUrlCount", repo.commits_url, 1, repo.repoId, 0, 1);
+		allRepos.forEach((repo, index) => {
+			promise = promise.then(function () {
+				Meteor.call("gitHubUrlCount", repo.commits_url, 1, repo.repoId, 0, 1);
+				return new Promise(function (resolve) {
+					setTimeout(resolve, interval);
+				});
+			});
 		})
-		console.log("all commits counts are updated");
+
+		promise.then(function () {
+			console.log("all commits counts are updated");
+		});
 	},
 	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt) => {
 		var requesturl = url + "&page=" + pageNumber;
@@ -182,10 +203,15 @@ Meteor.methods({
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token 17d33eb46192e72b372f588e2b8ee0ae4dcb25f5",
+					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
 				}
 			},
 			(err, resp) => {
+				if (resp.statusCode == 409) {
+					//repo is empty
+					console.log("empty repo: " + Id);
+					return;
+				}
 				if (err) {
 					console.log(err);
 					return;
@@ -219,7 +245,7 @@ Meteor.methods({
 							var match = /[(\&)]([^=]+)\=([^&#]+)/.exec(link);
 							var page = match[2] - 1;
 							tmpcount += page * 100;
-							Meteor.call("gitHubUrlCount", url, match[2], repoId, tmpcount, 2);
+							Meteor.call("gitHubUrlCount", url, match[2], Id, tmpcount, 2);
 						}
 					}
 					else if (attempt == 2) { // add the commits in the last page with the previous result
