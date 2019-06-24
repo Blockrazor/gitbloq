@@ -15,7 +15,7 @@ Template.body.onCreated(function bodyOnCreated() {
 	Meteor.subscribe('githubitems');
 	Meteor.subscribe('githubcount');
 	Meteor.subscribe('allcoins');
-	Session.set("slug", "cardano");
+	Session.set("slug", "bitcoin");
 });
 
 
