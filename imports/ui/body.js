@@ -3,6 +3,7 @@ import { Template } from 'meteor/templating';
 import { Githubitems } from '../api/repo.js';
 import { Githubcount } from '../api/repo.js';
 import { Githubcommits } from  '../api/repo.js';
+import { AllCoins } from  '../api/repo.js';
 
 import '../api/repo.js';
 import './body.html';
@@ -21,15 +22,57 @@ Template.body.onCreated(function bodyOnCreated() {
 Template.body.helpers({
   repos() {
   	return Githubitems.find().fetch();
-  }
+	},
+	coinName() {
+		var coinObj = AllCoins.findOne({slug: "cardano"});
+		// console.log(coinObj);
+		return coinObj.name;
+	},
+	coinSymbol() {
+		var coinObj = AllCoins.findOne({slug: "cardano"});
+		// console.log(coinObj);
+		return coinObj.symbol;
+	},
+	watcherCount(){
+		var repoArray = Githubitems.find({coinSlug: "cardano"}).fetch();
+		var watcherNumber = 0;
+		repoArray.forEach((repo)=>{
+				watcherNumber += repo.watchers_count;
+		})
+		return watcherNumber;
+	},
+	forkCount(){
+		var repoArray = Githubitems.find({coinSlug: "cardano"}).fetch();
+		var forkNumber = 0;
+		repoArray.forEach((repo)=>{
+				forkNumber += repo.forks_count;
+		})
+		return forkNumber;
+	},
+	starCount(){
+		var repoArray = Githubitems.find({coinSlug: "cardano"}).fetch();
+		var starNumber = 0;
+		repoArray.forEach((repo)=>{
+				starNumber += repo.stargazers_count;
+		})
+		return starNumber;
+	},
+	commitCount(){
+		var repoArray = Githubitems.find({coinSlug: "cardano"}).fetch();
+		var commitNumber = 0;
+		repoArray.forEach((repo)=>{
+				commitNumber += repo.commit_count;
+		})
+		return commitNumber;
+	}
 });
 
 Template.gitcount.helpers({
-
 	repocount(){
+		var coinName = "cardano";
 		try{
-	 	var allcount = Githubcount.find().fetch();
-	 	return allcount[allcount.length -1].repocount;
+		var repoCount = Githubitems.find({coinSlug: coinName}).fetch();
+		 return "The total repo about "+coinName+" in Github is "+repoCount.length;
 	 	}
 	 	catch(err){}
 	 }
@@ -80,7 +123,7 @@ function constructrepodata(){
 		data.push(
 		{
 			x: gitcountdata.time,
-			y: gitcountdata.repocount
+			y: gitcountdata.repoTotalCount
 		});
 	}
 	return[
