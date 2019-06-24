@@ -10,12 +10,8 @@
         <a class="navbar-brand" href="#">GitBloq</a>
       </div>
       <br>
-      <select class="selectpicker" data-live-search="true">
-          <option data-tokens="ketchup mustard">Hot Dog, Fries and a Soda</option>
-          <option data-tokens="mustard">Burger, Shake and a Smile</option>
-          <option data-tokens="frosting">Sugar, Spice and all things nice</option>
-        </select>
-        <br>
+
+      <br>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Dashboard</a></li>
@@ -32,13 +28,7 @@
       <div class="col-sm-3 sidenav hidden-xs">
         <h2>GitBloq</h2>
         <br>
-        <select data-live-search="true" class="selectpicker">
-            <option value="4444">4444</option>
-            <option value="Fedex">Fedex</option>
-            <option value="Elite">Elite</option>
-            <option value="Interp">Interp</option>
-            <option value="Test">Test</option>
-        </select>
+        
         <br>
         <ul class="nav nav-pills nav-stacked">
           <li class="active"><a href="#section1">Dashboard</a></li>
@@ -57,6 +47,12 @@
         <div class="row">
           <div class="col-sm-3">
             <div class="well">
+              <h4>Total Repos</h4>
+              <p> {{ repoCount }} </p>
+            </div>
+          </div>
+          <div class="col-sm-3">
+            <div class="well">
               <h4>Total Stars</h4>
               <p>{{ starCount }}</p>
             </div>
@@ -73,47 +69,40 @@
               <p> {{ watcherCount }}</p>
             </div>
           </div>
-          <div class="col-sm-3">
+        </div>
+        <div class="row">
+          <div class="col-sm-12">
             <div class="well">
-              <h4>Total Commits</h4>
-              <p> {{ commitCount }} </p>
+              <h4>GitHub Repo Count</h4>
+              {{> gitcountchart}}
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col-sm-12">
             <div class="well">
-              <h4>GitHub Repo Count</h4>
-                {{> gitcountchart}}
-            </div>
-          </div>
-          <div class="col-sm-4">
-            <div class="well">
-              <p>Text</p>
-              <p>Text</p>
-              <p>Text</p>
-            </div>
-          </div>
-          <div class="col-sm-4">
-            <div class="well">
-              <p>Text</p>
-              <p>Text</p>
-              <p>Text</p>
+              <h4>GitHub Star Count</h4>
+              {{> gitstarchart}}
             </div>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-8">
+          <div class="col-sm-12">
             <div class="well">
-              <p>Text</p>
-            </div>
-          </div>
-          <div class="col-sm-4">
-            <div class="well">
-              <p>Text</p>
+              <h4>GitHub Fork Count</h4>
+              {{> gitforkchart}}
             </div>
           </div>
         </div>
+        <div class="row">
+          <div class="col-sm-12">
+            <div class="well">
+              <h4>GitHub Watcher Count</h4>
+              {{> gitwatcherchart}}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -138,26 +127,36 @@
   </div>
 </body> -->
 
+
+
 <template name="item">
   <a href="{{url}}">
     <li>{{name}}</li>
   </a>
 </template>
 
-<template name="gitcount">
-  <h1>{{repocount}}</h1>
-</template>
-
 
 <template name="gitcountchart">
-  <div id="chart">
-    <svg style="height:400px;" />
+  <div id="repochart">
+    <svg style="height:400px;"></svg>
   </div>
 </template>
 
 
-<template name="gitcommitchart">
-  <div id="chart2">
-    <svg style="height:400px;" />
+<template name="gitforkchart">
+  <div id="forkchart">
+    <svg style="height:400px;"></svg>
+  </div>
+</template>
+
+<template name="gitwatcherchart">
+  <div id="watcherchart">
+    <svg style="height:400px;"></svg>
+  </div>
+</template>
+
+<template name="gitstarchart">
+  <div id="starchart">
+    <svg style="height:400px;"></svg>
   </div>
 </template>

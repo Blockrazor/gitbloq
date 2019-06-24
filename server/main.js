@@ -108,7 +108,7 @@ Meteor.methods({
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token ",
+					"Authorization": "token 1492770641d83c071bdac62ffdc3882e4ea9d6fb",
 				}
 			},
 			(err, resp) => {
@@ -207,7 +207,7 @@ Meteor.methods({
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token ",
+					"Authorization": "token 1492770641d83c071bdac62ffdc3882e4ea9d6fb",
 				}
 			},
 			(err, resp) => {
@@ -275,6 +275,8 @@ Meteor.methods({
 	}
 
 })
+
+
 
 //old code below
 export const updateGithubRepos = new ValidatedMethod({
