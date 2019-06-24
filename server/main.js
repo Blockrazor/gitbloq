@@ -39,10 +39,10 @@ Meteor.startup(() => {
 	// });
 	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
-	// Meteor.call('getCoinListCoinMarketCap');
+	 Meteor.call('getCoinListCoinMarketCap');
 
-	// Meteor.call('searchAllGithubRepos');
-	Meteor.call("getAllCommitCount");
+	//Meteor.call('searchAllGithubRepos');
+	//Meteor.call("getAllCommitCount");
 });
 
 
@@ -69,6 +69,7 @@ Meteor.methods({
 							{
 								name: element.name,
 								slug: element.slug,
+								symbol: element.symbol,
 							});
 					})
 					console.log("store list done");
@@ -79,25 +80,6 @@ Meteor.methods({
 			}
 		)
 	},
-	// getCoinList: () => {
-	// 	HTTP.call(
-	// 		'GET',
-	// 		'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=1&page=1&sparkline=false',
-	// 		{},
-	// 		(err, resp) => {
-	// 			if (!err) {
-	// 				resp.data.forEach(element => {
-	// 					var coinName = element.name.toLowerCase();
-	// 					var pageNumber = 1;
-	// 					console.log("start calling");
-	// 					Meteor.call('searchGithubRepos', coinName, pageNumber, true);
-	// 				});
-	// 			}
-	// 			else {
-	// 				console.log(err);
-	// 			}
-	// 		})
-	// },
 	searchAllGithubRepos: () => {
 		const coinNames = AllCoins.find({ "slug": "cardano" }).fetch(); //only for cardano now
 		var interval = 1000; // how much time should the delay between two iterations be (in milliseconds)?
@@ -117,14 +99,14 @@ Meteor.methods({
 		});
 	},
 	searchGithubRepos: (coinSlug, pageNumber, firstCall) => {
-		s
+
 		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
+					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337",
 				}
 			},
 			(err, resp) => {
@@ -135,6 +117,7 @@ Meteor.methods({
 				if (resp && resp.statusCode === 200) {
 					// Insert each repo into the repos collection
 					if (firstCall) {
+						Githubitems.remove({"coinSlug": coinSlug});
 						Githubcount.insert({
 							coinSlug: coinSlug,
 							repoTotalCount: resp.data.total_count,
@@ -149,6 +132,7 @@ Meteor.methods({
 							},
 							{
 								coinSlug: coinSlug,
+								createdAt: Date.now(),
 								repoId: repo.id,
 								name: repo.name,
 								full_name: repo.full_name,
@@ -196,14 +180,14 @@ Meteor.methods({
 			console.log("all commits counts are updated");
 		});
 	},
-	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt) => {
+	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt ) => {
 		var requesturl = url + "&page=" + pageNumber;
 		HTTP.get(
 			requesturl,
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token 5a5592c20f080634e724548eaa2f843876eba41f",
+					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337",
 				}
 			},
 			(err, resp) => {
@@ -368,7 +352,7 @@ function CallGitHubCommitApi(repo, attempt) {
 			{
 				headers: {
 					"User-Agent": "emurgo/bot",
-					"Authorization": "token 4e94e233ae58d77a234c7504c2ebf83549b9097d"
+					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337"
 				}
 			},
 			(err, resp) => {
