@@ -23,33 +23,33 @@ Template.body.helpers({
   	return Githubitems.find().fetch();
 	},
 	coinName() {
-		var coinObj = AllCoins.findOne({slug: "cardano"});
+		var coinObj = AllCoins.findOne({slug: Session.get("slug")});
 		// console.log(coinObj);
 		return coinObj.name;
 	},
 	coinSymbol() {
-		var coinObj = AllCoins.findOne({slug: "cardano"});
+		var coinObj = AllCoins.findOne({slug: Session.get("slug")});
 		// console.log(coinObj);
 		return coinObj.symbol;
 	},
 	watcherCount(){
-		var repo = Githubcount.findOne({coinSlug: "cardano"},{sort: {date_created: -1}});
+		var repo = Githubcount.findOne({coinSlug: Session.get("slug")},{sort: {date_created: -1}});
 		return repo.watchers_count;
 	},
 	forkCount(){
-		var repo = Githubcount.findOne({coinSlug: "cardano"},{sort: {date_created: -1}});
+		var repo = Githubcount.findOne({coinSlug: Session.get("slug")},{sort: {date_created: -1}});
 		return repo.forks_count;
 	},
 	starCount(){
-		var repo = Githubcount.findOne({coinSlug: "cardano"},{sort: {date_created: -1}});
+		var repo = Githubcount.findOne({coinSlug: Session.get("slug")},{sort: {date_created: -1}});
 		return repo.stargazers_count;
 	},
 	repoCount(){
-		var repo = Githubcount.findOne({coinSlug: "cardano"},{sort: {date_created: -1}});
+		var repo = Githubcount.findOne({coinSlug: Session.get("slug")},{sort: {date_created: -1}});
 		return repo.repoTotalCount;
 	},
 	commitCount(){
-		var repoArray = Githubitems.find({coinSlug: "cardano"}).fetch();
+		var repoArray = Githubitems.find({coinSlug: Session.get("slug")}).fetch();
 		var commitNumber = 0;
 		repoArray.forEach((repo)=>{
 				commitNumber += repo.commit_count;
@@ -57,6 +57,24 @@ Template.body.helpers({
 		return commitNumber;
 	}
 });
+
+
+Template.coinlist.helpers({
+	Allcoins(){
+		return AllCoins.find({}).fetch();
+	}
+})
+
+Template.coinlist.events({
+	"change #coinlist": function(evt) {
+		var newValue = $(evt.target).val();
+		var oldValue = Session.get("slug");
+		if (newValue != oldValue) {
+			// value changed, let's do something
+		}
+		Session.set("slug", newValue);
+	}
+})
 
 
 Template.gitcountchart.rendered = function() {
@@ -100,7 +118,7 @@ Template.gitcountchart.rendered = function() {
 
 function constructrepodata(){
 	var data = [];
-	for (const gitcountdata of Githubcount.find({coinSlug: "cardano"}).fetch()){
+	for (const gitcountdata of Githubcount.find({coinSlug: Session.get("slug")}).fetch()){
 		data.push(
 		{
 			x: gitcountdata.time,
@@ -158,7 +176,7 @@ Template.gitcountchart.rendered = function() {
 
 function constructrepodata(){
 var data = [];
-for (const gitcountdata of Githubcount.find({coinSlug: "cardano"}).fetch()){
+for (const gitcountdata of Githubcount.find({coinSlug: Session.get("slug")}).fetch()){
 	data.push(
 	{
 		x: gitcountdata.time,
@@ -216,7 +234,7 @@ Template.gitstarchart.rendered = function() {
 
 function constructstardata(){
 var data = [];
-for (const gitcountdata of Githubcount.find({coinSlug: "cardano"}).fetch()){
+for (const gitcountdata of Githubcount.find({coinSlug: Session.get("slug")}).fetch()){
 	data.push(
 	{
 		x: gitcountdata.time,
@@ -275,7 +293,7 @@ Template.gitforkchart.rendered = function() {
 
 function constructforkdata(){
 var data = [];
-for (const gitcountdata of Githubcount.find({coinSlug: "cardano"}).fetch()){
+for (const gitcountdata of Githubcount.find({coinSlug: Session.get("slug")}).fetch()){
 	data.push(
 	{
 		x: gitcountdata.time,
@@ -333,7 +351,7 @@ Template.gitwatcherchart.rendered = function() {
 
 function constructwatcherdata(){
 var data = [];
-for (const gitcountdata of Githubcount.find({coinSlug: "cardano"}).fetch()){
+for (const gitcountdata of Githubcount.find({coinSlug: Session.get("slug")}).fetch()){
 	data.push(
 	{
 		x: gitcountdata.time,

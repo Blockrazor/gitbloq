@@ -28,7 +28,7 @@
       <div class="col-sm-3 sidenav hidden-xs">
         <h2>GitBloq</h2>
         <br>
-        
+        {{> coinlist}}
         <br>
         <ul class="nav nav-pills nav-stacked">
           <li class="active"><a href="#section1">Dashboard</a></li>
@@ -127,7 +127,20 @@
   </div>
 </body> -->
 
+<template name="coinlist">
+    <div class="form-group">
+        <label for="coinlist">Select a Coin:</label>
+        <select class="form-control" id="coinlist">
+          {{#each Allcoins}}
+            {{> option}}
+          {{/each}}
+        </select>
+      </div>
+</template>
 
+<template name="option">
+    <option>{{slug}}</option>
+</template>
 
 <template name="item">
   <a href="{{url}}">
