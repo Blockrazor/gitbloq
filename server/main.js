@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import { Githubcommits, Githubcount, Githubitems, AllCoins, Githubfork, Githubstar, Githubwatcher } from '../imports/api/repo.js';
+import { Githubcommits, Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
