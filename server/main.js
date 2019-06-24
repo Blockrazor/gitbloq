@@ -3,7 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import { Githubcommits, Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
+import { Githubcommits, Githubcount, Githubitems, AllCoins, Githubfork, Githubstar, Githubwatcher } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -39,7 +39,7 @@ Meteor.startup(() => {
 	// });
 	// SyncedCron.start();
 	// updateGithubRepos.call({}, (err, data) => {});
-	 Meteor.call('getCoinListCoinMarketCap');
+	//Meteor.call('getCoinListCoinMarketCap');
 
 	//Meteor.call('searchAllGithubRepos');
 	//Meteor.call("getAllCommitCount");
@@ -88,7 +88,7 @@ Meteor.methods({
 			var pageNumber = 1;
 			console.log("start getting github repos for " + coinName.slug);
 			promise = promise.then(function () {
-				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, true);
+				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, 0, 0, 0, Date.now(),true);
 				return new Promise(function (resolve) {
 					setTimeout(resolve, interval);
 				});
@@ -98,15 +98,17 @@ Meteor.methods({
 			console.log("all coin's repo are updated");
 		});
 	},
-	searchGithubRepos: (coinSlug, pageNumber, firstCall) => {
-
+	searchGithubRepos: (coinSlug, pageNumber, star, watcher, fork, now, firstCall) => {
+		var tmpstar = star;
+		var tmpwatcher = watcher;
+		var tmpfork = fork;
 		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337",
+					"Authorization": "token ",
 				}
 			},
 			(err, resp) => {
@@ -117,47 +119,65 @@ Meteor.methods({
 				if (resp && resp.statusCode === 200) {
 					// Insert each repo into the repos collection
 					if (firstCall) {
-						Githubitems.remove({"coinSlug": coinSlug});
+						Githubitems.remove({ "coinSlug": coinSlug });
 						Githubcount.insert({
 							coinSlug: coinSlug,
 							repoTotalCount: resp.data.total_count,
-							time: Date.now(),
+							time: now,
 						});
 					}
 					for (const repo of resp.data.items) {
 						//update the mongodatabase for the repo
-						Githubitems.upsert(
-							{
-								repoId: repo.id
-							},
-							{
-								coinSlug: coinSlug,
-								createdAt: Date.now(),
-								repoId: repo.id,
-								name: repo.name,
-								full_name: repo.full_name,
-								description: repo.description,
-								url: repo.html_url,
-								commits_url: repo.commits_url.slice(0, -6) + "?per_page=100",
-								open_issues_count: repo.open_issues_count,
-								size: repo.size,
-								stargazers_count: repo.stargazers_count,
-								watchers_count: repo.watchers_count,
-								forks_count: repo.forks_count,
-								pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
-								commits_count: 0,
-							}
-						);
-
+						if (firstCall) {
+							Githubitems.upsert(
+								{
+									repoId: repo.id
+								},
+								{
+									coinSlug: coinSlug,
+									createdAt: now,
+									repoId: repo.id,
+									name: repo.name,
+									full_name: repo.full_name,
+									description: repo.description,
+									url: repo.html_url,
+									commits_url: repo.commits_url.slice(0, -6) + "?per_page=100",
+									open_issues_count: repo.open_issues_count,
+									size: repo.size,
+									stargazers_count: repo.stargazers_count,
+									watchers_count: repo.watchers_count,
+									forks_count: repo.forks_count,
+									pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
+									commits_count: 0,
+								}
+							);
+						}
+						tmpfork += repo.forks_count;
+						tmpstar += repo.stargazers_count;
+						tmpwatcher += repo.watchers_count;
 					}
 
 					var nextUrl = parse_link_header(resp.headers.link).next;
 					if (nextUrl == undefined) {
+						Githubcount.upsert({
+							coinSlug: coinSlug,
+							time: now,
+						},
+							{
+								$set: {
+									forks_count: tmpfork,
+									stargazers_count: tmpstar,
+									watchers_count: tmpwatcher,
+								}
+							},
+							{ multi: true }
+						);
 						console.log("end for " + coinSlug);
+
 						return;
 					}
 					// console.log("call again for " + coinSlug);
-					Meteor.call('searchGithubRepos', coinSlug, pageNumber + 1, false);
+					Meteor.call('searchGithubRepos', coinSlug, pageNumber + 1, tmpstar, tmpwatcher, tmpfork, now, false);
 				}
 			}
 		);
@@ -180,14 +200,14 @@ Meteor.methods({
 			console.log("all commits counts are updated");
 		});
 	},
-	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt ) => {
+	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt) => {
 		var requesturl = url + "&page=" + pageNumber;
 		HTTP.get(
 			requesturl,
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337",
+					"Authorization": "token ",
 				}
 			},
 			(err, resp) => {
@@ -352,7 +372,7 @@ function CallGitHubCommitApi(repo, attempt) {
 			{
 				headers: {
 					"User-Agent": "emurgo/bot",
-					"Authorization": "token b1a1d454513bb697ee5f64ea08e46b64361e9337"
+					"Authorization": ""
 				}
 			},
 			(err, resp) => {
@@ -405,7 +425,7 @@ function CallGitHubSearchApi() {
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "17d33eb46192e72b372f588e2b8ee0ae4dcb25f5",
+					"Authorization": "",
 				}
 			},
 			(err, resp) => {
