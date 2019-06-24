@@ -15,12 +15,14 @@ Template.body.onCreated(function bodyOnCreated() {
   Meteor.subscribe('githubitems');
 	Meteor.subscribe('githubcount');
 	Meteor.subscribe('allcoins');
+	Session.set("slug", "cardano");
 });
 
 
 Template.body.helpers({
-  repos() {
-  	return Githubitems.find().fetch();
+	repos(){
+		var repos = Githubitems.find({coinSlug: Session.get("slug")}).fetch();
+		return repos;
 	},
 	coinName() {
 		var coinObj = AllCoins.findOne({slug: Session.get("slug")});
@@ -78,7 +80,8 @@ Template.coinlist.events({
 
 
 Template.gitcountchart.rendered = function() {
-    // var chart = nv.models.lineChart()
+		// var chart = nv.models.lineChart()
+		try{
     var chart = nv.models.lineWithFocusChart();
     //   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
     //   .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
@@ -114,7 +117,8 @@ Template.gitcountchart.rendered = function() {
 	      ).call(chart);
 	      chart.update();
 	    });
-	};
+	
+		}catch{}	};
 
 function constructrepodata(){
 	var data = [];
@@ -137,6 +141,7 @@ function constructrepodata(){
 
 Template.gitcountchart.rendered = function() {
 	// var chart = nv.models.lineChart()
+	try{
 	var chart = nv.models.lineWithFocusChart();
 	//   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
 	//   .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
@@ -172,7 +177,7 @@ Template.gitcountchart.rendered = function() {
 			).call(chart);
 			chart.update();
 		});
-};
+	}catch{}};
 
 function constructrepodata(){
 var data = [];
@@ -195,6 +200,7 @@ return[
 
 Template.gitstarchart.rendered = function() {
 	// var chart = nv.models.lineChart()
+	try{
 	var chart = nv.models.lineWithFocusChart();
 	//   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
 	//   .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
@@ -230,6 +236,7 @@ Template.gitstarchart.rendered = function() {
 			).call(chart);
 			chart.update();
 		});
+	}catch{}
 };
 
 function constructstardata(){
@@ -254,6 +261,7 @@ return[
 
 Template.gitforkchart.rendered = function() {
 	// var chart = nv.models.lineChart()
+	try{
 	var chart = nv.models.lineWithFocusChart();
 	//   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
 	//   .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
@@ -289,6 +297,7 @@ Template.gitforkchart.rendered = function() {
 			).call(chart);
 			chart.update();
 		});
+	}catch{}
 };
 
 function constructforkdata(){
@@ -311,6 +320,7 @@ return[
 }
 
 Template.gitwatcherchart.rendered = function() {
+	try{
 	// var chart = nv.models.lineChart()
 	var chart = nv.models.lineWithFocusChart();
 	//   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
@@ -347,6 +357,7 @@ Template.gitwatcherchart.rendered = function() {
 			).call(chart);
 			chart.update();
 		});
+	}catch{}
 };
 
 function constructwatcherdata(){
@@ -373,6 +384,7 @@ return[
 
 
 Template.gitcommitchart.rendered = function() {
+	try{
     // var chart = nv.models.lineChart()
     var chart = nv.models.lineWithFocusChart();
     //   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
@@ -408,7 +420,8 @@ Template.gitcommitchart.rendered = function() {
 	        	repoData
 	      ).call(chart);
 	      chart.update();
-	    });
+			});
+		}catch{}
 	};
 
 // function constructcommitdata(){

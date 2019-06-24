@@ -28,26 +28,39 @@ function parse_link_header(header) {
 }
 
 Meteor.startup(() => {
-	//code to run on server at startup
-	// SyncedCron.add({
-	// 	name: 'Update githubdata everyday at 0401',
-	// 	schedule: function (parser) {
-	// 		// parser is a later.parse object
-	// 		return parser.text('at 04:01am everyday');
-	// 	},
-	// 	job: () => updateGithubRepos.call({}, (err, data) => { })
-	// });
-	// SyncedCron.start();
-	// updateGithubRepos.call({}, (err, data) => {});
+	// code to run on server at startup'
+	if(AllCoins.find({}).fetch().length == 0){
+		Meteor.call('getCoinListCoinMarketCap'); //get coin list if nothing
+		Meteor.call('searchAllGithubRepos'); //tmp solution for no data in local
+	}
+	SyncedCron.add({
+		name: 'Update CoinList everyday at 0401',
+		schedule: function (parser) {
+			// parser is a later.parse object
+			return parser.text('at 04:01am everyday');
+		},
+		job: () => Meteor.call('getCoinListCoinMarketCap')
+	});
+	SyncedCron.add({
+		name: 'Update git repos',
+		schedule: function (parser) {
+			// parser is a later.parse object
+			return parser.text('at 05:00am everyday');
+		},
+		job: () => Meteor.call('searchAllGithubRepos')
+	});
+	SyncedCron.start();
 	//Meteor.call('getCoinListCoinMarketCap');
 
-	//Meteor.call('searchAllGithubRepos');
+	// Meteor.call('searchAllGithubRepos');
 	//Meteor.call("getAllCommitCount");
 });
 
 
+
 Meteor.methods({
 	getCoinListCoinMarketCap: () => {
+		console.log("storing coin list");
 		HTTP.call(
 			'GET',
 			'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest',
@@ -88,7 +101,10 @@ Meteor.methods({
 			var pageNumber = 1;
 			console.log("start getting github repos for " + coinName.slug);
 			promise = promise.then(function () {
-				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, 0, 0, 0, Date.now(),true);
+				var date = new Date().toGMTString().slice(0, -12);
+				date += "00:00:00 GMT";
+				date = Date.parse(date);
+				Meteor.call('searchGithubRepos', coinName.slug, pageNumber, 0, 0, 0, date,true);
 				return new Promise(function (resolve) {
 					setTimeout(resolve, interval);
 				});
@@ -108,7 +124,7 @@ Meteor.methods({
 			{
 				headers: {
 					"User-Agent": "ioioio8888",
-					"Authorization": "token 1492770641d83c071bdac62ffdc3882e4ea9d6fb",
+					// "Authorization": "token ",
 				}
 			},
 			(err, resp) => {
@@ -120,11 +136,18 @@ Meteor.methods({
 					// Insert each repo into the repos collection
 					if (firstCall) {
 						Githubitems.remove({ "coinSlug": coinSlug });
-						Githubcount.insert({
+						Githubcount.upsert({
 							coinSlug: coinSlug,
-							repoTotalCount: resp.data.total_count,
-							time: now,
-						});
+							time : now,
+						},{
+							$set: {
+								coinSlug: coinSlug,
+								repoTotalCount: resp.data.total_count,
+								time: now,
+							}
+						},
+						{ multi: true }
+						);
 					}
 					for (const repo of resp.data.items) {
 						//update the mongodatabase for the repo
