@@ -20,6 +20,10 @@ Template.body.onCreated(function bodyOnCreated() {
 
 
 Template.body.helpers({
+	repos(){
+		var repos = Githubitems.find({coinSlug: Session.get("slug")}).fetch();
+		return repos;
+	},
 	coinName() {
 		var coinObj = AllCoins.findOne({slug: Session.get("slug")});
 		// console.log(coinObj);
