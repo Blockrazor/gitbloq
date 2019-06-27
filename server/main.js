@@ -86,7 +86,7 @@ Meteor.startup(() => {
 		name: 'Update git api call limit',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('every 1 second');
+			return parser.text('every 30 second');
 		},
 		job: () => 	getRateLimit().then((data)=>{
 			searchCount = (data.resources.search.remaining);
@@ -163,11 +163,12 @@ Meteor.methods({
 			return;
 		}
 		searchCount -= 1;
-		var url = "https://api.github.com/search/repositories?q=" + coinNames[current] + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
+		var url = "https://api.github.com/search/repositories?q=" + coinNames[current].slug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
-				headers: {
+				headers: 
+				{
 					"User-Agent": "ioioio8888",
 					"Authorization": "token " + accessToken,
 				}
