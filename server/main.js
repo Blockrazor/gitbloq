@@ -82,12 +82,24 @@ Meteor.startup(() => {
 		},
 		job: () => 	Meteor.call('getAllCommitCount')
 	});
+	SyncedCron.add({
+		name: 'Update git api call limit',
+		schedule: function (parser) {
+			// parser is a later.parse object
+			return parser.text('every 1 second');
+		},
+		job: () => 	getRateLimit().then((data)=>{
+			searchCount = (data.resources.search.remaining);
+			nextSearchReset = (data.resources.search.reset);
+		}).catch()
+	});
+
 	SyncedCron.start();
 
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	//Meteor.call('searchAllGithubRepos');
+	Meteor.call('searchAllGithubRepos');
 	//Meteor.call('getAllCommitCount');
 });
 
@@ -130,34 +142,8 @@ Meteor.methods({
 	},
 	searchAllGithubRepos: () => {
 		const coinNames = AllCoins.find({}).fetch();
-		// getRateLimit()
-		// .then((data)=>{
-		// 	searchCount = data.resources.search.remaining;
-		// 	nextSearchReset = data.resources.search.reset;
-		// 	return;
-		// })
-		// .then(()=>{
-		// 	setInterval(function () {
-		// 		bound(() => {
-		// 		getRateLimit().then((data)=>{
-		// 			searchCount = data.resources.search.remaining;
-		// 			nextSearchReset = data.resources.search.reset;
-		// 			console.log("reset!" + nextSearchReset);
-		// 			return;
-		// 		}).catch((error)=>{
-		// 			console.log(error);
-		// 		})
-		// 	})
-		// 	},nextSearchReset - Date.now());
-		// })
-		// .catch((error)=>{console.log(error)})
-
-		searchCount = 29; //reset the search count
+		searchCount = 30; //reset the search count
 		nextSearchReset = Date.now() + 60000;
-		setInterval(function () {
-			searchCount = 29; //reset the search count
-			nextSearchReset = Date.now() + 60000;
-		}, 60000);
 		console.log("start getting github repos for " + coinNames[0].slug);
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
