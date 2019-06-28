@@ -48,7 +48,7 @@ getRateLimit = () => {
 }
 
 
-var accessToken = ""; //please put your personal access token here
+var accessToken = "c088b98f377be4d14610ed212ad247a057ff55a1"; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
@@ -78,7 +78,7 @@ Meteor.startup(() => {
 		name: 'Update git commits weekly',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 01:00am on Mon');
+			return parser.text('at 07:00am everyday');
 		},
 		job: () => Meteor.call('getAllCommitCount')
 	});
@@ -99,8 +99,8 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
-	//Meteor.call('getAllCommitCount');
+	// Meteor.call('searchAllGithubRepos');
+	// Meteor.call('getAllCommitCount');
 });
 
 
@@ -219,7 +219,7 @@ Meteor.methods({
 									watchers_count: repo.watchers_count,
 									forks_count: repo.forks_count,
 									// pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
-									// commits_count: 0,
+									commits_count: [],
 								}
 							},
 							{ multi: true }
@@ -283,7 +283,10 @@ Meteor.methods({
 	}
 	},
 	getAllCommitCount: () => {
-		var allRepos = Githubitems.find({}).fetch();
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
+		var allRepos = Githubitems.find({createdAt: date}).fetch();
 
 		var interval = 1000; // call between 1 sec.
 		var promise = Promise.resolve();
