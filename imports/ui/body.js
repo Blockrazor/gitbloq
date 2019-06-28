@@ -21,12 +21,14 @@ Template.body.onCreated(function bodyOnCreated() {
 
 Template.body.helpers({
 	repos() {
-		var repos = Githubitems.find({ coinSlug: Session.get("slug") }).fetch();
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
+		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
 		return repos;
 	},
 	coinName() {
 		var coinObj = AllCoins.findOne({ slug: Session.get("slug") });
-		// console.log(coinObj);
 		if (coinObj != undefined)
 			return coinObj.name;
 	},
@@ -56,19 +58,12 @@ Template.body.helpers({
 		if (repo != undefined)
 			return repo.repoTotalCount;
 	},
-	commitCount() {
-		var repoArray = Githubitems.find({ coinSlug: Session.get("slug") }).fetch();
-		var commitNumber = 0;
-		repoArray.forEach((repo) => {
-			commitNumber += repo.commit_count;
-		})
-		return commitNumber;
-	}
 });
 
 
 Template.coinlist.helpers({
 	Allcoins() {
+		// console.log(AllCoins.find({}).fetch());
 		return AllCoins.find({}).fetch();
 	}
 })
@@ -367,7 +362,9 @@ Template.gitwatcherchart.rendered = function () {
 			).call(chart);
 			chart.update();
 		});
-	} catch{ }
+	} catch(error){
+		console.log(error);
+	 }
 };
 
 function constructwatcherdata() {
@@ -390,6 +387,73 @@ function constructwatcherdata() {
 }
 
 
+Template.gitcommitchart.rendered = function () {
+	try {
+		var chart = nv.models.stackedAreaChart()
+		.margin({right: 100})
+		.x(function (d) {
+			return (new Date(d[0]))
+		})   //We can modify the data accessor functions...
+		.y(function(d) { return d[1] })   //...in case your data is formatted differently.
+		.useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
+		.rightAlignYAxis(true)      //Let's move the y-axis to the right side.
+		.transitionDuration(500)
+		.showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
+		.clipEdge(true);
+		nv.addGraph(function() {
+		
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+		
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructrepodata();
+			d3.select('#commitchart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructcommitdata();
+			d3.select('#commitchart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch(error){ 
+		console.log(error);
+	}
+};
+
+function constructcommitdata() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	// console.log(date);
+	var commits = Githubcommits.find({ coinSlug: Session.get("slug"),  createdAt: date},{limit: 10}).fetch();
+	for (const repo of commits) {
+		// console.log(repo);
+		var commits_count =  repo.commits_count;
+		var values = [];
+		commits_count.forEach((element, index) => {
+			values.push([date - (604800000* (52 - index)) ,element]);
+		});
+		data.push(
+			{
+				key: repo.name,
+				values: values,
+			})
+	}
+	// console.log(data);
+	return data;
+}
 
 
 

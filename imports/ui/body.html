@@ -103,6 +103,15 @@
           </div>
         <!-- </div> -->
         <div class="row">
+            <div class="col-sm-12">
+              <div class="well">
+                <h4>GitHub Top 100 stars repo commits</h4>
+                <br>
+                {{> gitcommitchart}}
+              </div>
+            </div>
+          </div>
+        <div class="row">
           <div class="col-sm-12">
             <div class="well">
               <h4>GitHub Top 100 stars repo</h4>
@@ -184,3 +193,9 @@
     <svg style="height:400px;"></svg>
   </div>
 </template>
+
+<template name="gitcommitchart">
+    <div id="commitchart">
+      <svg style="height:500px;"></svg>
+    </div>
+  </template>
