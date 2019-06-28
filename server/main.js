@@ -48,7 +48,7 @@ getRateLimit = () => {
 }
 
 
-var accessToken = "c088b98f377be4d14610ed212ad247a057ff55a1"; //please put your personal access token here
+var accessToken = ""; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
@@ -292,7 +292,7 @@ Meteor.methods({
 		var promise = Promise.resolve();
 		allRepos.forEach((repo) => {
 			promise = promise.then(() => {
-				//console.log("start getting github repos for " + repo.name);
+				console.log("start getting github repos' commits for " + repo.name);
 				var date = new Date().toGMTString().slice(0, -12);
 				date += "00:00:00 GMT";
 				date = Date.parse(date);
@@ -327,6 +327,23 @@ Meteor.methods({
 					},
 					{
 						$set: {
+							commits_count: resp.data.all,
+						}
+					},
+					{ multi: true }
+				);
+				Githubcommits.upsert(
+					{
+						repoId: repo.repoId,
+						createdAt: now,
+					},
+					{
+						$set: {
+							coinSlug: repo.coinSlug,
+							createdAt: now,
+							repoId: repo.repoId,
+							name: repo.name,
+							full_name: repo.full_name,
 							commits_count: resp.data.all,
 						}
 					},
