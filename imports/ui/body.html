@@ -28,9 +28,6 @@
     <div class="row content">
       <div class="col-sm-3 sidenav hidden-xs">
         <h2>GitBloq</h2>
-        <br>
-        {{> coinlist}}
-        <br>
         <ul class="nav nav-pills nav-stacked">
           <li class="active"><a href="home">Dashboard</a></li>
           <li><a href="compare">Compare</a></li>
@@ -144,6 +141,9 @@
 
 
 <template name="home">
+    <br>
+    {{> coinlist}}
+    <br>
   <div class="well">
     <h1>{{ coinName }}</h1>
     <p>{{ coinSymbol }}</p>
