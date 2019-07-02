@@ -18,7 +18,6 @@ Template.body.onCreated(function bodyOnCreated() {
 	Session.set("slug", "bitcoin");
 });
 
-
 Template.body.helpers({
 	repos() {
 		var date = new Date().toGMTString().slice(0, -12);
@@ -27,6 +26,9 @@ Template.body.helpers({
 		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
 		return repos;
 	},
+})
+
+Template.home.helpers({
 	coinName() {
 		var coinObj = AllCoins.findOne({ slug: Session.get("slug") });
 		if (coinObj != undefined)
@@ -71,13 +73,114 @@ Template.coinlist.helpers({
 Template.coinlist.events({
 	"change #coinlist": function (evt) {
 		var newValue = $(evt.target).val();
-		var oldValue = Session.get("slug");
-		if (newValue != oldValue) {
-			// value changed, let's do something
-		}
 		Session.set("slug", newValue);
 	}
 })
+
+Template.coinlistcompare1.helpers({
+	Allcoins() {
+		// console.log(AllCoins.find({}).fetch());
+		return AllCoins.find({}).fetch();
+	}
+})
+
+Template.coinlistcompare1.events({
+	"change #coinlist": function (evt) {
+		var newValue = $(evt.target).val();
+		Session.set("compare1", newValue);
+	}
+})
+
+Template.coinlistcompare2.helpers({
+	Allcoins() {
+		// console.log(AllCoins.find({}).fetch());
+		return AllCoins.find({}).fetch();
+	}
+})
+
+Template.coinlistcompare2.events({
+	"change #coinlist": function (evt) {
+		var newValue = $(evt.target).val();
+		Session.set("compare2", newValue);
+	}
+})
+
+Template.body.helpers({
+	repos() {
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
+		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
+		return repos;
+	},
+})
+
+Template.compare.helpers({
+	coin1Name() {
+		var coinObj = AllCoins.findOne({ slug: Session.get("compare1") });
+		if (coinObj != undefined)
+			return coinObj.name;
+	},
+	coin1Symbol() {
+		var coinObj = AllCoins.findOne({ slug: Session.get("compare1") });
+		// console.log(coinObj);
+		if (coinObj != undefined)
+			return coinObj.symbol;
+	},
+	watcher1Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.watchers_count;
+	},
+	fork1Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.forks_count;
+	},
+	star1Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.stargazers_count;
+	},
+	repo1Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.repoTotalCount;
+	},
+	coin2Name() {
+		var coinObj = AllCoins.findOne({ slug: Session.get("compare2") });
+		if (coinObj != undefined)
+			return coinObj.name;
+	},
+	coin2Symbol() {
+		var coinObj = AllCoins.findOne({ slug: Session.get("compare2") });
+		// console.log(coinObj)
+		if (coinObj != undefined)
+			return coinObj.symbol;
+	},
+	watcher2Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.watchers_count;
+	},
+	fork2Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.forks_count;
+	},
+	star2Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.stargazers_count;
+	},
+	repo2Count() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		if (repo != undefined)
+			return repo.repoTotalCount;
+	},
+});
+
+
 
 
 Template.gitcountchart.rendered = function () {

@@ -14,7 +14,8 @@
       <br>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
-          <li class="active"><a href="#">Dashboard</a></li>
+          <li class="active"><a href="home">Dashboard</a></li>
+          <li><a href="compare">Compare</a></li>
           <!-- <li><a href="#">Age</a></li>
             <li><a href="#">Gender</a></li>
             <li><a href="#">Geo</a></li> -->
@@ -31,98 +32,17 @@
         {{> coinlist}}
         <br>
         <ul class="nav nav-pills nav-stacked">
-          <li class="active"><a href="#section1">Dashboard</a></li>
-          <!-- <li><a href="#section2">Age</a></li>
-            <li><a href="#section3">Gender</a></li>
+          <li class="active"><a href="home">Dashboard</a></li>
+          <li><a href="compare">Compare</a></li>
+          <!-- <li><a href="#section3">Gender</a></li>
             <li><a href="#section3">Geo</a></li> -->
         </ul><br>
       </div>
       <br>
-
       <div class="col-sm-9">
-        <div class="well">
-          <h1>{{ coinName }}</h1>
-          <p>{{ coinSymbol }}</p>
-        </div>
-        <div class="row">
-          <div class="col-sm-3">
-            <div class="well">
-              <h4>Total Repos</h4>
-              <p> {{ repoCount }} </p>
-            </div>
-          </div>
-          <div class="col-sm-3">
-            <div class="well">
-              <h4>Total Stars</h4>
-              <p>{{ starCount }}</p>
-            </div>
-          </div>
-          <div class="col-sm-3">
-            <div class="well">
-              <h4>Total Forks</h4>
-              <p>{{ forkCount }}</p>
-            </div>
-          </div>
-          <div class="col-sm-3">
-            <div class="well">
-              <h4>Total Watchers</h4>
-              <p> {{ watcherCount }}</p>
-            </div>
-          </div>
-        </div>
-        <!-- <div class="row"> -->
-          <div class="col-sm-6">
-            <div class="well">
-              <h4>GitHub Repo Count</h4>
-              {{> gitcountchart}}
-            </div>
-          </div>
-        <!-- </div> -->
-        <!-- <div class="row"> -->
-          <div class="col-sm-6">
-            <div class="well">
-              <h4>GitHub Star Count</h4>
-              {{> gitstarchart}}
-            </div>
-          </div>
-        <!-- </div> -->
-        <!-- <div class="row"> -->
-          <div class="col-sm-6">
-            <div class="well">
-              <h4>GitHub Fork Count</h4>
-              {{> gitforkchart}}
-            </div>
-          </div>
-        <!-- </div> -->
-        <!-- <div class="row"> -->
-          <div class="col-sm-6">
-            <div class="well">
-              <h4>GitHub Watcher Count</h4>
-              {{> gitwatcherchart}}
-            </div>
-          </div>
-        <!-- </div> -->
-        <div class="row">
-            <div class="col-sm-12">
-              <div class="well">
-                <h4>GitHub Top 100 stars repo commits</h4>
-                <br>
-                {{> gitcommitchart}}
-              </div>
-            </div>
-          </div>
-        <div class="row">
-          <div class="col-sm-12">
-            <div class="well">
-              <h4>GitHub Top 100 stars repo</h4>
-              <br>
-              {{#each repos}}
-                {{> item}}
-              {{/each}}
-            </div>
-          </div>
-        </div>
+        {{> App_body}}
       </div>
+
     </div>
   </div>
 </body>
@@ -145,6 +65,170 @@
   </div>
 </body> -->
 
+<template name="App_body">
+  <div class="col-sm-9">
+    {{> Template.dynamic template=main}}
+  </div>
+</template>
+
+<template name="compare">
+  <div class="col-md-6 p-0 h-md-100">
+    <div class="well">
+        <h1>{{coin1Name}}</h1>
+      {{> coinlistcompare1}}
+    </div>
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Repos</h4>
+          <p> {{ repo1Count }} </p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Stars</h4>
+          <p>{{ star1Count }}</p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Forks</h4>
+          <p>{{ fork1Count }}</p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Watchers</h4>
+          <p> {{ watcher1Count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Second Half -->
+
+  <div class="col-md-6 p-0 h-md-100 ">
+    <div class="well">
+      <h1>{{coin2Name}}</h1>
+      {{> coinlistcompare2}}
+    </div>
+    <div class="row">
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Repos</h4>
+          <p> {{ repo2Count }} </p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Stars</h4>
+          <p>{{ star2Count }}</p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Forks</h4>
+          <p>{{ fork2Count }}</p>
+        </div>
+      </div>
+      <div class="col-sm-3">
+        <div class="well">
+          <h4>Total Watchers</h4>
+          <p> {{ watcher2Count }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<template name="home">
+  <div class="well">
+    <h1>{{ coinName }}</h1>
+    <p>{{ coinSymbol }}</p>
+  </div>
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="well">
+        <h4>Total Repos</h4>
+        <p> {{ repoCount }} </p>
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <div class="well">
+        <h4>Total Stars</h4>
+        <p>{{ starCount }}</p>
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <div class="well">
+        <h4>Total Forks</h4>
+        <p>{{ forkCount }}</p>
+      </div>
+    </div>
+    <div class="col-sm-3">
+      <div class="well">
+        <h4>Total Watchers</h4>
+        <p> {{ watcherCount }}</p>
+      </div>
+    </div>
+  </div>
+  <!-- <div class="row"> -->
+  <div class="col-sm-6">
+    <div class="well">
+      <h4>GitHub Repo Count</h4>
+      {{> gitcountchart}}
+    </div>
+  </div>
+  <!-- </div> -->
+  <!-- <div class="row"> -->
+  <div class="col-sm-6">
+    <div class="well">
+      <h4>GitHub Star Count</h4>
+      {{> gitstarchart}}
+    </div>
+  </div>
+  <!-- </div> -->
+  <!-- <div class="row"> -->
+  <div class="col-sm-6">
+    <div class="well">
+      <h4>GitHub Fork Count</h4>
+      {{> gitforkchart}}
+    </div>
+  </div>
+  <!-- </div> -->
+  <!-- <div class="row"> -->
+  <div class="col-sm-6">
+    <div class="well">
+      <h4>GitHub Watcher Count</h4>
+      {{> gitwatcherchart}}
+    </div>
+  </div>
+  <!-- </div> -->
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="well">
+        <h4>GitHub Top 100 stars repo commits</h4>
+        <br>
+        {{> gitcommitchart}}
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="well">
+        <h4>GitHub Top 100 stars repo</h4>
+        <br>
+        {{#each repos}}
+        {{> item}}
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</template>
+
+
 <template name="coinlist">
   <div class="form-group">
     <label for="coinlist">Select a Coin:</label>
@@ -155,6 +239,30 @@
     </select>
   </div>
 </template>
+
+
+<template name="coinlistcompare2">
+  <div class="form-group">
+    <label for="coinlist">Select a Coin:</label>
+    <select class="form-control" id="coinlist">
+      {{#each Allcoins}}
+      {{> option}}
+      {{/each}}
+    </select>
+  </div>
+</template>
+
+<template name="coinlistcompare1">
+  <div class="form-group">
+    <label for="coinlist">Select a Coin:</label>
+    <select class="form-control" id="coinlist">
+      {{#each Allcoins}}
+      {{> option}}
+      {{/each}}
+    </select>
+  </div>
+</template>
+
 
 <template name="option">
   <option>{{slug}}</option>
@@ -195,7 +303,7 @@
 </template>
 
 <template name="gitcommitchart">
-    <div id="commitchart">
-      <svg style="height:500px;"></svg>
-    </div>
-  </template>
+  <div id="commitchart">
+    <svg style="height:500px;"></svg>
+  </div>
+</template>

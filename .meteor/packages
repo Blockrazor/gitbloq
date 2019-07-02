@@ -24,3 +24,5 @@ standard-app-packages
 mrt:nvd3js@0.1.0
 d3
 twbs:bootstrap
+kadira:flow-router
+kadira:blaze-layout
