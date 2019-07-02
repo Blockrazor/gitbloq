@@ -11,14 +11,18 @@ var randomColor = require('randomcolor');
 
 Template.body.onCreated(function bodyOnCreated() {
 	//this.state = new ReactiveDict();
-	Meteor.subscribe('githubcommits');
-	Meteor.subscribe('githubitems');
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	Meteor.subscribe('githubcommits', date);
+	Meteor.subscribe('githubitems', date);
 	Meteor.subscribe('githubcount');
 	Meteor.subscribe('allcoins');
 	Session.set("slug", "bitcoin");
 });
 
-Template.body.helpers({
+
+Template.home.helpers({
 	repos() {
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
@@ -26,9 +30,6 @@ Template.body.helpers({
 		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
 		return repos;
 	},
-})
-
-Template.home.helpers({
 	coinName() {
 		var coinObj = AllCoins.findOne({ slug: Session.get("slug") });
 		if (coinObj != undefined)
@@ -557,113 +558,3 @@ function constructcommitdata() {
 	// console.log(data);
 	return data;
 }
-
-
-
-// Template.gitcommitchart.rendered = function () {
-// 	try {
-// 		// var chart = nv.models.lineChart()
-// 		var chart = nv.models.lineWithFocusChart();
-// 		//   .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
-// 		//   .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-// 		//   .transitionDuration(350)  //how fast do you want the lines to transition?
-// 		//   .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
-// 		//   .showYAxis(true)        //Show the y-axis
-// 		//   .showXAxis(true)        //Show the x-axis
-// 		// ;
-
-// 		nv.addGraph(function () {
-// 			chart.xAxis.axisLabel('Date').tickFormat(
-// 				function (d) {
-// 					return d3.time.format('%x')(new Date(d))
-// 				});
-// 			chart.x2Axis.axisLabel('Date').tickFormat(
-// 				function (d) {
-// 					return d3.time.format('%x')(new Date(d))
-// 				});
-// 			chart.yAxis.axisLabel('Commits').tickFormat(d3.format('d'));
-// 			chart.y2Axis.axisLabel('Commits').tickFormat(d3.format('d'));
-// 			var repoData = constructcommitdata();
-// 			d3.select('#chart2 svg').datum(
-// 				repoData
-// 			).call(chart);
-// 			nv.utils.windowResize(function () { chart.update(); });
-// 			return chart;
-// 		});
-
-// 		this.autorun(function () {
-// 			var repoData = constructcommitdata();
-// 			d3.select('#chart2 svg').datum(
-// 				repoData
-// 			).call(chart);
-// 			chart.update();
-// 		});
-// 	} catch{ }
-// };
-
-// // function constructcommitdata(){
-// // 	var line = [];
-// // 	var data = [];
-// // 	for (const repo of Githubitems.find().fetch()){
-// // 		data = [];
-// // 		//console.log(repo.name);
-// // 		//console.log(Githubcommits.find().fetch());
-// // 		for (const commit of Githubcommits.find({},{sort: {time : 1}}).fetch())
-// // 		{
-// // 			console.log(d3.time.format('%x')(new Date(commit.time)));
-// // 			data.push(
-// // 			{
-// // 				x: commit.time,
-// // 				y: commit.count
-// // 			});
-// // 		}
-// // 		line.push({
-// //       	values: data,
-// //      	 key: repo.name,
-// //      	 color: randomColor(),
-// //      	 area: false      //area - set to true if you want this line to turn into a filled area chart.
-// //     	});
-// // 	}
-// // 	return line;
-// // }
-
-// function constructcommitdata() {
-
-// 	var data = [];
-// 	var allcommits = Githubcommits.find().fetch();
-// 	var dates = [];
-// 	for (const commit of allcommits) {
-// 		dates.push(d3.time.format('%x')(new Date(commit.time)));
-// 		commit.date = (d3.time.format('%x')(new Date(commit.time)));
-// 		//console.log(commit.time);
-// 	}
-// 	dates = [...new Set(dates)];
-// 	console.log(dates);
-// 	for (const date of dates) {
-// 		console.log(date);
-// 		var Matchedcommits = allcommits.filter(function (element) {
-// 			return element.date == date;
-// 		});
-// 		var tmpcount = 0;
-// 		for (const matchedcommit of Matchedcommits) {
-// 			tmpcount += matchedcommit.count;
-// 		}
-// 		data.push(
-// 			{
-// 				x: Matchedcommits[0].time,
-// 				y: tmpcount
-// 			});
-// 	}
-
-// 	return [
-// 		{
-// 			values: data,
-// 			key: 'Total commit',
-// 			color: '#7770ff',
-// 			area: true      //area - set to true if you want this line to turn into a filled area chart.
-// 		},
-// 	];
-// }
-
-
-

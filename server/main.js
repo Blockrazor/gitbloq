@@ -48,7 +48,7 @@ getRateLimit = () => {
 	});
 }
 
-var accessToken = "8fc6a36ed90f5723296b9136bc35f782ccadd629"; //please put your personal access token here
+var accessToken = ""; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
