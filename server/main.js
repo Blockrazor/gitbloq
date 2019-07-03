@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import { Githubcommits, Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
+import {  Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -99,10 +99,9 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
+	// Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
-
 
 Meteor.methods({
 	getCoinListCoinMarketCap: () => {
@@ -188,21 +187,6 @@ Meteor.methods({
 					}
 					if (resp && resp.statusCode === 200) {
 						// Insert each repo into the repos collection
-						if (firstCall) {
-							//Githubitems.remove({ "coinSlug": coinNames[current].slug });
-							Githubcount.upsert({
-								coinSlug: coinNames[current].slug,
-								time: now,
-							}, {
-									$set: {
-										coinSlug: coinNames[current].slug,
-										repoTotalCount: resp.data.total_count,
-										time: now,
-									}
-								},
-								{ multi: true }
-							);
-						}
 						for (const repo of resp.data.items) {
 							//update the mongodatabase for the repo
 							Githubitems.upsert(
@@ -246,6 +230,9 @@ Meteor.methods({
 							},
 								{
 									$set: {
+										coinSlug: coinNames[current].slug,
+										repoTotalCount: resp.data.total_count,
+										time: now,
 										forks_count: tmpfork,
 										stargazers_count: tmpstar,
 										watchers_count: tmpwatcher,
