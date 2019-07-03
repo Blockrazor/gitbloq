@@ -541,7 +541,7 @@ function constructcommitdata() {
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
 	// console.log(date);
-	var commits = Githubcommits.find({ coinSlug: Session.get("slug"),  createdAt: date},{limit: 10}).fetch();
+	var commits = Githubitems.find({ coinSlug: Session.get("slug")},{limit: 10}).fetch();
 	for (const repo of commits) {
 		// console.log(repo);
 		var commits_count =  repo.commits_count;
