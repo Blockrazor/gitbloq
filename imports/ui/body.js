@@ -2,7 +2,6 @@ import { Template } from 'meteor/templating';
 
 import { Githubitems } from '../api/repo.js';
 import { Githubcount } from '../api/repo.js';
-import { Githubcommits } from '../api/repo.js';
 import { AllCoins } from '../api/repo.js';
 
 import './body.html';
@@ -14,7 +13,6 @@ Template.body.onCreated(function bodyOnCreated() {
 	var date = new Date().toGMTString().slice(0, -12);
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
-	Meteor.subscribe('githubcommits', date);
 	Meteor.subscribe('githubitems', date);
 	Meteor.subscribe('githubcount');
 	Meteor.subscribe('allcoins');
@@ -27,7 +25,7 @@ Template.home.helpers({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}},{limit:100}).fetch();
+		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}}).fetch();
 		return repos;
 	},
 	coinName() {
@@ -106,15 +104,6 @@ Template.coinlistcompare2.events({
 	}
 })
 
-Template.body.helpers({
-	repos() {
-		var date = new Date().toGMTString().slice(0, -12);
-		date += "00:00:00 GMT";
-		date = Date.parse(date);
-		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}},{limit:100}).fetch();
-		return repos;
-	},
-})
 
 Template.compare.helpers({
 	coin1Name() {
@@ -129,22 +118,22 @@ Template.compare.helpers({
 			return coinObj.symbol;
 	},
 	openIssue1Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.open_issues_count;
 	},
 	fork1Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.forks_count;
 	},
 	star1Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.stargazers_count;
 	},
 	repo1Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.repoTotalCount;
 	},
@@ -160,22 +149,22 @@ Template.compare.helpers({
 			return coinObj.symbol;
 	},
 	openIssue2Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.open_issues_count;
 	},
 	fork2Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.forks_count;
 	},
 	star2Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.stargazers_count;
 	},
 	repo2Count() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.repoTotalCount;
 	},
@@ -477,7 +466,7 @@ function constructOpenIssueData() {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.open_issues_count
+				y: gitcountdata.open_issues_count ? gitcountdata.open_issues_count : 0
 			});
 	}
 	return [
@@ -541,7 +530,8 @@ function constructcommitdata() {
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
 	// console.log(date);
-	var commits = Githubcommits.find({ coinSlug: Session.get("slug"),  createdAt: date},{limit: 10}).fetch();
+	var commits = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1},limit: 10}).fetch();
+	console.log(commits);
 	for (const repo of commits) {
 		// console.log(repo);
 		var commits_count =  repo.commits_count;

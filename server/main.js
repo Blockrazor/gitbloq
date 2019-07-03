@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import { Githubcommits, Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
+import {  Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -48,7 +48,7 @@ getRateLimit = () => {
 	});
 }
 
-var accessToken = "73098240fce1321e62e24df6ddef47776c8f0e3f"; //please put your personal access token here
+var accessToken = ""; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
@@ -75,7 +75,7 @@ Meteor.startup(() => {
 		job: () => Meteor.call('searchAllGithubRepos')
 	});
 	SyncedCron.add({
-		name: 'Update git commits weekly',
+		name: 'Update git commits',
 		schedule: function (parser) {
 			// parser is a later.parse object
 			return parser.text('at 09:00 everyday');
@@ -99,10 +99,9 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
+	// Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
-
 
 Meteor.methods({
 	getCoinListCoinMarketCap: () => {
@@ -151,10 +150,13 @@ Meteor.methods({
 	},
 	searchGithubRepos: (coinNames, current, pageNumber, star, watcher, fork, open_issue, now, firstCall) => {
 		try {
-			var tmpstar = star;
-			var tmpwatcher = watcher;
-			var tmpfork = fork;
-			var tmpOpenIssue = open_issue;
+			if(firstCall && Githubcount.findOne({ coinSlug: coinNames[current].slug, time: now }) != undefined){
+				console.log(coinNames[current].slug + " is already updated today.");
+				console.log("start getting github repos for " + coinNames[current + 1].slug);
+				Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
+				return;
+			}
+
 			if (searchCount <= 0) {
 				setTimeout(function () {
 					bound(() => {
@@ -163,6 +165,10 @@ Meteor.methods({
 				}, nextSearchReset - Date.now() + 1000); //recall after next reset
 				return;
 			}
+			var tmpstar = star;
+			var tmpwatcher = watcher;
+			var tmpfork = fork;
+			var tmpOpenIssue = open_issue;
 			searchCount -= 1;
 			var url = "https://api.github.com/search/repositories?q=" + coinNames[current].slug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 			HTTP.call("GET",
@@ -181,21 +187,6 @@ Meteor.methods({
 					}
 					if (resp && resp.statusCode === 200) {
 						// Insert each repo into the repos collection
-						if (firstCall) {
-							//Githubitems.remove({ "coinSlug": coinNames[current].slug });
-							Githubcount.upsert({
-								coinSlug: coinNames[current].slug,
-								time: now,
-							}, {
-									$set: {
-										coinSlug: coinNames[current].slug,
-										repoTotalCount: resp.data.total_count,
-										time: now,
-									}
-								},
-								{ multi: true }
-							);
-						}
 						for (const repo of resp.data.items) {
 							//update the mongodatabase for the repo
 							Githubitems.upsert(
@@ -239,6 +230,9 @@ Meteor.methods({
 							},
 								{
 									$set: {
+										coinSlug: coinNames[current].slug,
+										repoTotalCount: resp.data.total_count,
+										time: now,
 										forks_count: tmpfork,
 										stargazers_count: tmpstar,
 										watchers_count: tmpwatcher,
