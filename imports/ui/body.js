@@ -27,7 +27,7 @@ Template.home.helpers({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
+		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}},{limit:100}).fetch();
 		return repos;
 	},
 	coinName() {
@@ -41,23 +41,23 @@ Template.home.helpers({
 		if (coinObj != undefined)
 			return coinObj.symbol;
 	},
-	watcherCount() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { date_created: -1 } });
+	openIssueCount() {
+		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { time: -1 } });
 		if (repo != undefined)
-			return repo.watchers_count;
+			return repo.open_issues_count;
 	},
 	forkCount() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.forks_count;
 	},
 	starCount() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.stargazers_count;
 	},
 	repoCount() {
-		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { date_created: -1 } });
+		var repo = Githubcount.findOne({ coinSlug: Session.get("slug") }, { sort: { time: -1 } });
 		if (repo != undefined)
 			return repo.repoTotalCount;
 	},
@@ -111,7 +111,7 @@ Template.body.helpers({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var repos = Githubitems.find({ coinSlug: Session.get("slug"),  createdAt: date},{sort: {stargazers_count: -1}},{limit:100}).fetch();
+		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}},{limit:100}).fetch();
 		return repos;
 	},
 })
@@ -128,10 +128,10 @@ Template.compare.helpers({
 		if (coinObj != undefined)
 			return coinObj.symbol;
 	},
-	watcher1Count() {
+	openIssue1Count() {
 		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
 		if (repo != undefined)
-			return repo.watchers_count;
+			return repo.open_issues_count;
 	},
 	fork1Count() {
 		var repo = Githubcount.findOne({ coinSlug: Session.get("compare1") }, { sort: { date_created: -1 } });
@@ -159,10 +159,10 @@ Template.compare.helpers({
 		if (coinObj != undefined)
 			return coinObj.symbol;
 	},
-	watcher2Count() {
+	openIssue2Count() {
 		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
 		if (repo != undefined)
-			return repo.watchers_count;
+			return repo.open_issues_count;
 	},
 	fork2Count() {
 		var repo = Githubcount.findOne({ coinSlug: Session.get("compare2") }, { sort: { date_created: -1 } });
@@ -330,7 +330,7 @@ Template.gitstarchart.rendered = function () {
 				});
 			chart.yAxis.axisLabel('Stars').tickFormat(d3.format('d'));
 			chart.y2Axis.axisLabel('Stars').tickFormat(d3.format('d'));
-			var repoData = constructrepodata();
+			var repoData = constructstardata();
 			d3.select('#starchart svg').datum(
 				repoData
 			).call(chart);
@@ -428,7 +428,7 @@ function constructforkdata() {
 	];
 }
 
-Template.gitwatcherchart.rendered = function () {
+Template.gitOpenIssueChart.rendered = function () {
 	try {
 		// var chart = nv.models.lineChart()
 		var chart = nv.models.lineWithFocusChart();
@@ -451,8 +451,8 @@ Template.gitwatcherchart.rendered = function () {
 				});
 			chart.yAxis.axisLabel('Forks').tickFormat(d3.format('d'));
 			chart.y2Axis.axisLabel('Forks').tickFormat(d3.format('d'));
-			var repoData = constructrepodata();
-			d3.select('#watcherchart svg').datum(
+			var repoData = constructOpenIssueData();
+			d3.select('#openIssueChart svg').datum(
 				repoData
 			).call(chart);
 			nv.utils.windowResize(function () { chart.update(); });
@@ -460,8 +460,8 @@ Template.gitwatcherchart.rendered = function () {
 		});
 
 		this.autorun(function () {
-			var repoData = constructwatcherdata();
-			d3.select('#watcherchart svg').datum(
+			var repoData = constructOpenIssueData();
+			d3.select('#openIssueChart svg').datum(
 				repoData
 			).call(chart);
 			chart.update();
@@ -471,19 +471,19 @@ Template.gitwatcherchart.rendered = function () {
 	 }
 };
 
-function constructwatcherdata() {
+function constructOpenIssueData() {
 	var data = [];
 	for (const gitcountdata of Githubcount.find({ coinSlug: Session.get("slug") }).fetch()) {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.forks_count
+				y: gitcountdata.open_issues_count
 			});
 	}
 	return [
 		{
 			values: data,
-			key: 'Total watchers',
+			key: 'Total Open Issue',
 			color: '#7770ff',
 			area: true      //area - set to true if you want this line to turn into a filled area chart.
 		},
