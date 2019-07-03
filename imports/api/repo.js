@@ -11,13 +11,13 @@ export const Githubcount = new Mongo.Collection('githubcount');
 if (Meteor.isServer) {
   // This code only runs on the server
   Meteor.publish('githubitems', (date) => {
-    return Githubitems.find({createdAt: date},{sort: {stargazers_count: -1}},{limit:100});
+    return Githubitems.find({},{sort: {stargazers_count: -1}},{limit:100});
   });
   Meteor.publish('githubcount', () => {
     return Githubcount.find();
   });
   Meteor.publish('githubcommits', (date) => {
-    return Githubcommits.find({createdAt: date},{limit:100});
+    return Githubcommits.find({createdAt: date});
   });
   Meteor.publish('allcoins', () => {
     return AllCoins.find();

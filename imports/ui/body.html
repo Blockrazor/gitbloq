@@ -95,8 +95,8 @@
       </div>
       <div class="col-sm-3">
         <div class="well">
-          <h4>Total Watchers</h4>
-          <p> {{ watcher1Count }}</p>
+          <h4>Total Open Issue</h4>
+          <p> {{ openIssue1Count }}</p>
         </div>
       </div>
     </div>
@@ -131,8 +131,8 @@
       </div>
       <div class="col-sm-3">
         <div class="well">
-          <h4>Total Watchers</h4>
-          <p> {{ watcher2Count }}</p>
+          <h4>Total Open Issue</h4>
+          <p> {{ openIssue2Count }}</p>
         </div>
       </div>
     </div>
@@ -169,8 +169,8 @@
     </div>
     <div class="col-sm-3">
       <div class="well">
-        <h4>Total Watchers</h4>
-        <p> {{ watcherCount }}</p>
+        <h4>Total Open Issue</h4>
+        <p> {{ openIssueCount }}</p>
       </div>
     </div>
   </div>
@@ -201,8 +201,8 @@
   <!-- <div class="row"> -->
   <div class="col-sm-6">
     <div class="well">
-      <h4>GitHub Watcher Count</h4>
-      {{> gitwatcherchart}}
+      <h4>GitHub Open Issue Count</h4>
+      {{> gitOpenIssueChart}}
     </div>
   </div>
   <!-- </div> -->
@@ -290,8 +290,8 @@
   </div>
 </template>
 
-<template name="gitwatcherchart">
-  <div id="watcherchart">
+<template name="gitOpenIssueChart">
+  <div id="openIssueChart">
     <svg style="height:400px;"></svg>
   </div>
 </template>

@@ -48,7 +48,7 @@ getRateLimit = () => {
 	});
 }
 
-var accessToken = ""; //please put your personal access token here
+var accessToken = "73098240fce1321e62e24df6ddef47776c8f0e3f"; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
@@ -62,7 +62,7 @@ Meteor.startup(() => {
 		name: 'Update CoinList everyday at 0401',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 01:01am everyday');
+			return parser.text('at 08:05 everyday');
 		},
 		job: () => Meteor.call('getCoinListCoinMarketCap')
 	});
@@ -70,7 +70,7 @@ Meteor.startup(() => {
 		name: 'Update git repos',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 12:25am everyday');
+			return parser.text('at 08:30 everyday');
 		},
 		job: () => Meteor.call('searchAllGithubRepos')
 	});
@@ -78,7 +78,7 @@ Meteor.startup(() => {
 		name: 'Update git commits weekly',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 01:25pm everyday');
+			return parser.text('at 09:00 everyday');
 		},
 		job: () => Meteor.call('getAllCommitCount')
 	});
@@ -99,10 +99,9 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	//Meteor.call('searchAllGithubRepos');
-	//Meteor.call('getAllCommitCount');
+	Meteor.call('searchAllGithubRepos');
+    //Meteor.call('getAllCommitCount');
 });
-
 
 
 Meteor.methods({
@@ -148,17 +147,18 @@ Meteor.methods({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		Meteor.call('searchGithubRepos', coinNames, 0, 1, 0, 0, 0, date, true);
+		Meteor.call('searchGithubRepos', coinNames, 0, 1, 0, 0, 0,0, date, true);
 	},
-	searchGithubRepos: (coinNames, current, pageNumber, star, watcher, fork, now, firstCall) => {
+	searchGithubRepos: (coinNames, current, pageNumber, star, watcher, fork, open_issue, now, firstCall) => {
 		try {
 			var tmpstar = star;
 			var tmpwatcher = watcher;
 			var tmpfork = fork;
+			var tmpOpenIssue = open_issue;
 			if (searchCount <= 0) {
 				setTimeout(function () {
 					bound(() => {
-						Meteor.call('searchGithubRepos', coinNames, current, pageNumber, star, watcher, fork, now, firstCall);
+						Meteor.call('searchGithubRepos', coinNames, current, pageNumber, star, watcher, fork, open_issue, now, firstCall);
 					});
 				}, nextSearchReset - Date.now() + 1000); //recall after next reset
 				return;
@@ -201,25 +201,21 @@ Meteor.methods({
 							Githubitems.upsert(
 								{
 									repoId: repo.id,
-									createdAt: now,
 								},
 								{
 									$set: {
 										coinSlug: coinNames[current].slug,
-										createdAt: now,
+										repoUpdatedAt: now,
 										repoId: repo.id,
 										name: repo.name,
 										full_name: repo.full_name,
 										description: repo.description,
 										url: repo.html_url,
-										// commits_url: repo.commits_url.slice(0, -6) + "?per_page=100",
 										open_issues_count: repo.open_issues_count,
 										size: repo.size,
 										stargazers_count: repo.stargazers_count,
 										watchers_count: repo.watchers_count,
 										forks_count: repo.forks_count,
-										// pulls_url: repo.pulls_url.slice(0, -9) + "?per_page=100",
-										commits_count: [],
 									}
 								},
 								{ multi: true }
@@ -227,6 +223,7 @@ Meteor.methods({
 							tmpfork += repo.forks_count;
 							tmpstar += repo.stargazers_count;
 							tmpwatcher += repo.watchers_count;
+							tmpOpenIssue += repo.open_issues_count;
 						}
 						var nextUrl = undefined;
 						try {
@@ -245,6 +242,7 @@ Meteor.methods({
 										forks_count: tmpfork,
 										stargazers_count: tmpstar,
 										watchers_count: tmpwatcher,
+										open_issues_count: tmpOpenIssue,
 									}
 								},
 								{ multi: true }
@@ -254,7 +252,7 @@ Meteor.methods({
 								setTimeout(function () {
 									bound(() => {
 										console.log("start getting github repos for " + coinNames[current + 1].slug);
-										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, now, true);
+										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 									});
 								}, 1000);
 								return;
@@ -264,7 +262,7 @@ Meteor.methods({
 						}
 						setTimeout(function () {
 							bound(() => {
-								Meteor.call('searchGithubRepos', coinNames, current, pageNumber + 1, tmpstar, tmpwatcher, tmpfork, now, false);
+								Meteor.call('searchGithubRepos', coinNames, current, pageNumber + 1, tmpstar, tmpwatcher, tmpfork, tmpOpenIssue ,now, false);
 							});
 						}, 1000);
 					}
@@ -276,7 +274,7 @@ Meteor.methods({
 			setTimeout(function () {
 				bound(() => {
 					console.log("start getting github repos again for " + coinNames[current].slug);
-					Meteor.call('searchGithubRepos', coinNames, current, 1, 0, 0, 0, now, true);
+					Meteor.call('searchGithubRepos', coinNames, current, 1, 0, 0, 0, 0, now, true);
 				});
 			}, 1000);
 			return;
@@ -286,28 +284,34 @@ Meteor.methods({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var allRepos = Githubitems.find({ createdAt: date }).fetch();
+		var allRepos = Githubitems.find({ }).fetch();
 
 		var interval = 1000; // call between 1 sec.
 		var promise = Promise.resolve();
 		allRepos.forEach((repo) => {
+			if(Date.now() - repo.commitsUpdateAt > 604800000 || repo.commitsUpdateAt == undefined){
 			promise = promise.then(() => {
 				console.log("start getting github repos' commits for " + repo.name);
 				var date = new Date().toGMTString().slice(0, -12);
 				date += "00:00:00 GMT";
 				date = Date.parse(date);
-				Meteor.call('gitHubWeeklyCommits', repo, 0, date);
+				Meteor.call('gitHubWeeklyCommits', repo);
 				return new Promise(function (resolve) {
 					setTimeout(resolve, interval);
 				});
 			}
 			)
+			}
+			else{
+				//console.log(repo.name + " is updated within a week.")
+			}
 		})
 		promise.then(() => {
 			console.log("done");
 		})
 	},
-	gitHubWeeklyCommits: (repo, current, now) => {
+	gitHubWeeklyCommits: (repo) => {
+		try{
 		HTTP.get(
 			"https://api.github.com/repos/" + repo.full_name + "/stats/participation",
 			{
@@ -323,106 +327,23 @@ Meteor.methods({
 				Githubitems.upsert(
 					{
 						repoId: repo.repoId,
-						createdAt: now,
 					},
 					{
 						$set: {
-							commits_count: resp.data.all,
-						}
-					},
-					{ multi: true }
-				);
-				Githubcommits.upsert(
-					{
-						repoId: repo.repoId,
-						createdAt: now,
-					},
-					{
-						$set: {
-							coinSlug: repo.coinSlug,
-							createdAt: now,
-							repoId: repo.repoId,
-							name: repo.name,
-							full_name: repo.full_name,
+							commitsUpdateAt: Date.now(),							
 							commits_count: resp.data.all,
 						}
 					},
 					{ multi: true }
 				);
 			})
-		//console.log("end getting commits for " + repo.name);
+		}catch(err){
+			console.log(err);
+			setTimeout(function () {
+				bound(() => {
+					Meteor.call('gitHubWeeklyCommits', repo);
+				});
+			}, 1000);
+		}
 	},
-	gitHubUrlCount: (url, pageNumber, Id, tmpcount, attempt) => {
-		var requesturl = url + "&page=" + pageNumber;
-		HTTP.get(
-			requesturl,
-			{
-				headers: {
-					"User-Agent": "ioioio8888",
-					"Authorization": "token 1492770641d83c071bdac62ffdc3882e4ea9d6fb",
-				}
-			},
-			(err, resp) => {
-				if (resp.statusCode == 409) {
-					//repo is empty
-					console.log("empty repo: " + Id);
-					return;
-				}
-				if (err) {
-					console.log(err);
-					return;
-				}
-				if (resp && resp.statusCode === 200) {
-					if (attempt == 1) {
-						var link;
-						try {
-							link = parse_link_header(resp.headers.link).last;
-						}
-						catch (error) { }
-						if (link == undefined) //which means there are less then 100 commits in this response and calculate the no. of commits in this page
-						{
-							var Jresp = JSON.parse(resp.content);
-							tmpcount += Jresp.length;
-							console.log("total :" + tmpcount + "for repoId :" + Id);
-							Githubitems.upsert(
-								{
-									repoId: Id
-								},
-								{
-									$set: {
-										commits_count: tmpcount
-									}
-								},
-								{ multi: true }
-							);
-						}
-						else //which means there are 100 commits in this response, get the last page - 1 and multiply it by 100, to get the number of commits before the last page
-						{
-							var match = /[(\&)]([^=]+)\=([^&#]+)/.exec(link);
-							var page = match[2] - 1;
-							tmpcount += page * 100;
-							Meteor.call("gitHubUrlCount", url, match[2], Id, tmpcount, 2);
-						}
-					}
-					else if (attempt == 2) { // add the commits in the last page with the previous result
-						var Jresp = JSON.parse(resp.content);
-						tmpcount += Jresp.length;
-						console.log("total :" + tmpcount + "for repoId :" + Id);
-						Githubitems.upsert(
-							{
-								repoId: Id
-							},
-							{
-								$set: {
-									commits_count: tmpcount
-								}
-							},
-							{ multi: true }
-						);
-					}
-				}
-			}
-		);
-
-	}
 })
