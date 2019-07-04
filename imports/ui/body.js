@@ -223,7 +223,7 @@ function constructrepodata() {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.repoTotalCount
+				y: gitcountdata.repoTotalCount ? gitcountdata.repoTotalCount : 0
 			});
 	}
 	return [
@@ -283,7 +283,7 @@ function constructrepodata() {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.repoTotalCount
+				y: gitcountdata.repoTotalCount ? gitcountdata.repoTotalCount : 0
 			});
 	}
 	return [
@@ -343,7 +343,7 @@ function constructstardata() {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.stargazers_count
+				y: gitcountdata.stargazers_count ? gitcountdata.stargazers_count : 0
 			});
 	}
 	return [
@@ -404,7 +404,7 @@ function constructforkdata() {
 		data.push(
 			{
 				x: gitcountdata.time,
-				y: gitcountdata.forks_count
+				y: gitcountdata.forks_count ? gitcountdata.forks_count : 0
 			});
 	}
 	return [
@@ -504,7 +504,7 @@ Template.gitcommitchart.rendered = function () {
 			chart.yAxis
 				.tickFormat(d3.format(',.2f'));
 
-			var repoData = constructrepodata();
+			var repoData = constructcommitdata();
 			d3.select('#commitchart svg').datum(
 				repoData
 			).call(chart);
