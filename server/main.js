@@ -62,7 +62,7 @@ Meteor.startup(() => {
 		name: 'Update CoinList everyday at 0401',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 10:17 everyday');
+			return parser.text('at 00:01 everyday');
 		},
 		job: () => Meteor.call('getCoinListCoinMarketCap')
 	});
@@ -70,7 +70,7 @@ Meteor.startup(() => {
 		name: 'Update git repos',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 10:20 everyday');
+			return parser.text('at 00:05 everyday');
 		},
 		job: () => Meteor.call('searchAllGithubRepos')
 	});
@@ -78,7 +78,7 @@ Meteor.startup(() => {
 		name: 'Update git commits',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 10:40 everyday');
+			return parser.text('at 00:50 everyday');
 		},
 		job: () => Meteor.call('getAllCommitCount')
 	});
@@ -99,7 +99,7 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
+	//Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
 
@@ -142,7 +142,7 @@ Meteor.methods({
 		const coinNames = AllCoins.find({}).fetch();
 		searchCount = 30; //reset the search count
 		nextSearchReset = Date.now() + 60000;
-		console.log("start getting github repos for " + coinNames[0].slug);
+		//console.log("start getting github repos for " + coinNames[0].slug);
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
@@ -151,8 +151,8 @@ Meteor.methods({
 	searchGithubRepos: (coinNames, current, pageNumber, star, watcher, fork, open_issue, now, firstCall) => {
 		try {
 			if(firstCall && Githubcount.findOne({ coinSlug: coinNames[current].slug, time: now }) != undefined){
-				console.log(coinNames[current].slug + " is already updated today.");
-				console.log("start getting github repos for " + coinNames[current + 1].slug);
+				//console.log(coinNames[current].slug + " is already updated today.");
+				//console.log("start getting github repos for " + coinNames[current + 1].slug);
 				Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 				return;
 			}
@@ -245,7 +245,7 @@ Meteor.methods({
 							if (current + 1 <= coinNames.length) {
 								setTimeout(function () {
 									bound(() => {
-										console.log("start getting github repos for " + coinNames[current + 1].slug);
+										//console.log("start getting github repos for " + coinNames[current + 1].slug);
 										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 									});
 								}, 1000);
