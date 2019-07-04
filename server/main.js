@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
 import { ValidatedMethod } from "meteor/mdg:validated-method";
-import {  Githubcount, Githubitems, AllCoins } from '../imports/api/repo.js';
+import {  Githubcount, Githubitems, AllCoins, GitToken } from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -48,7 +48,7 @@ getRateLimit = () => {
 	});
 }
 
-var accessToken = ""; //please put your personal access token here
+var accessToken = GitToken.findOne().token; //please put your personal access token here
 var searchCount = 29; //search api count is 30 calls/min
 var nextSearchReset = 0;
 const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
@@ -62,7 +62,7 @@ Meteor.startup(() => {
 		name: 'Update CoinList everyday at 0401',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 08:05 everyday');
+			return parser.text('at 10:17 everyday');
 		},
 		job: () => Meteor.call('getCoinListCoinMarketCap')
 	});
@@ -70,7 +70,7 @@ Meteor.startup(() => {
 		name: 'Update git repos',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 08:30 everyday');
+			return parser.text('at 10:20 everyday');
 		},
 		job: () => Meteor.call('searchAllGithubRepos')
 	});
@@ -78,7 +78,7 @@ Meteor.startup(() => {
 		name: 'Update git commits',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 09:00 everyday');
+			return parser.text('at 10:40 everyday');
 		},
 		job: () => Meteor.call('getAllCommitCount')
 	});
@@ -99,7 +99,7 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	// Meteor.call('searchAllGithubRepos');
+	Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
 

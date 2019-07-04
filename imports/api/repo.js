@@ -5,6 +5,7 @@ import { Mongo } from 'meteor/mongo'
 export const AllCoins = new Mongo.Collection('allcoins');
 export const Githubitems = new Mongo.Collection('githubitems');
 export const Githubcount = new Mongo.Collection('githubcount');
+export const GitToken = new Mongo.Collection('gitToken');
 
 
 if (Meteor.isServer) {
@@ -17,5 +18,8 @@ if (Meteor.isServer) {
   });
   Meteor.publish('allcoins', () => {
     return AllCoins.find();
+  });
+  Meteor.publish('gitToken', () => {
+    return GitToken.findOne();
   });
 }
