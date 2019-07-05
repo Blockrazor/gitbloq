@@ -1,69 +1,28 @@
 <body>
-  <nav class="navbar navbar-inverse visible-xs">
+  <nav class="navbar navbar-default">
     <div class="container-fluid">
       <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">GitBloq</a>
+        <a class="navbar-brand" href="/home">GitBloq</a>
       </div>
-      <br>
-
-      <br>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
           <li class="active"><a href="home">Dashboard</a></li>
           <li><a href="compare">Compare</a></li>
-          <!-- <li><a href="#">Age</a></li>
-            <li><a href="#">Gender</a></li>
-            <li><a href="#">Geo</a></li> -->
         </ul>
       </div>
     </div>
   </nav>
 
   <div class="container-fluid">
-    <div class="row content">
-      <div class="col-sm-3 sidenav hidden-xs">
-        <h2>GitBloq</h2>
-        <ul class="nav nav-pills nav-stacked">
-          <li class="active"><a href="home">Dashboard</a></li>
-          <li><a href="compare">Compare</a></li>
-          <!-- <li><a href="#section3">Gender</a></li>
-            <li><a href="#section3">Geo</a></li> -->
-        </ul><br>
-      </div>
       <br>
-      <div class="col-sm-9">
+      <div class="col-sm-12">
         {{> App_body}}
       </div>
-
-    </div>
   </div>
 </body>
 
-
-<!-- <body>
-  <div class="container">
-    <header>
-      {{> gitcount}}
-    </header>
-      <script type="text/javascript" src="https://files.coinmarketcap.com/static/widget/currency.js"></script>
-      <div class="coinmarketcap-currency-widget" data-currencyid="2010" data-base="USD" data-secondary="BTC" data-ticker="true" data-rank="true" data-marketcap="true" data-volume="true" data-stats="USD" data-statsticker="true"></div>
-      {{> gitcommitchart}}
-      {{> gitcountchart}}
-    <ul>
-      {{#each repos}}
-        {{> item}}
-      {{/each}}
-    </ul>
-  </div>
-</body> -->
-
 <template name="App_body">
-  <div class="col-sm-9">
+  <div class="col-sm-12">
     {{> Template.dynamic template=main}}
   </div>
 </template>

@@ -13,10 +13,10 @@ Template.body.onCreated(function bodyOnCreated() {
 	var date = new Date().toGMTString().slice(0, -12);
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
+	Session.set("slug", "bitcoin");
 	Meteor.subscribe('githubitems', date);
 	Meteor.subscribe('githubcount');
 	Meteor.subscribe('allcoins');
-	Session.set("slug", "bitcoin");
 });
 
 
