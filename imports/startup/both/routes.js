@@ -5,15 +5,15 @@ FlowRouter.route('/compare/', {
 	}
 });
 
-FlowRouter.route('/home', {
-	name: 'home',
+FlowRouter.route('/dashboard/', {
+	name: 'dashboard',
 	action(params, queryParams) {
-        BlazeLayout.render('App_body', {main: 'home'});
+        BlazeLayout.render('App_body', {main: 'dashboard'});
 	}
 });
 
 FlowRouter.route('/', {
-	action(params) {
-	  FlowRouter.go('home', params);
+	action(params, queryParams) {
+	  FlowRouter.go('dashboard', params , queryParams);
 	}
-      });
+});
