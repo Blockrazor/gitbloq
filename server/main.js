@@ -99,7 +99,7 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
+	//Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
 
