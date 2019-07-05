@@ -99,7 +99,7 @@ Meteor.startup(() => {
 	//you can also call the function manually
 
 	//Meteor.call('getCoinListCoinMarketCap');
-	//Meteor.call('searchAllGithubRepos');
+	Meteor.call('searchAllGithubRepos');
     //Meteor.call('getAllCommitCount');
 });
 
@@ -245,7 +245,7 @@ Meteor.methods({
 							if (current + 1 <= coinNames.length) {
 								setTimeout(function () {
 									bound(() => {
-										//console.log("start getting github repos for " + coinNames[current + 1].slug);
+										console.log("start getting github repos for " + coinNames[current + 1].slug);
 										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 									});
 								}, 1000);
@@ -267,7 +267,7 @@ Meteor.methods({
 			console.log(err);
 			setTimeout(function () {
 				bound(() => {
-					console.log("start getting github repos again for " + coinNames[current].slug);
+					//console.log("start getting github repos again for " + coinNames[current].slug);
 					Meteor.call('searchGithubRepos', coinNames, current, 1, 0, 0, 0, 0, now, true);
 				});
 			}, 1000);
@@ -285,7 +285,7 @@ Meteor.methods({
 		allRepos.forEach((repo) => {
 			if(Date.now() - repo.commitsUpdateAt > 604800000 || repo.commitsUpdateAt == undefined){
 			promise = promise.then(() => {
-				console.log("start getting github repos' commits for " + repo.name);
+				//console.log("start getting github repos' commits for " + repo.name);
 				var date = new Date().toGMTString().slice(0, -12);
 				date += "00:00:00 GMT";
 				date = Date.parse(date);

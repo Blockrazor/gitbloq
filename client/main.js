@@ -14,3 +14,9 @@ FlowRouter.route('/home', {
         BlazeLayout.render('App_body', {main: 'home'});
 	}
 });
+
+FlowRouter.route('/', {
+	action(params) {
+	  FlowRouter.go('home', params);
+	}
+      });
