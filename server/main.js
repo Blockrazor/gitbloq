@@ -1,7 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo'
 import { Promise } from "meteor/promise";
-import { ValidatedMethod } from "meteor/mdg:validated-method";
 import {  Githubcount, Githubitems, AllCoins, GitToken } from '../imports/api/repo.js';
 
 
@@ -26,7 +24,15 @@ function parse_link_header(header) {
 	return links;
 }
 
+var accessToken = GitToken.findOne().token; 
+//please put your personal access token into GitToken collection with "token" parameter 
+var searchCount = 29; 
+//search api count is 30 calls/min, use 29 to prevent any inaccurate count
+var nextSearchReset = 0;
+const bound = Meteor.bindEnvironment((callback) => { callback(); }); 
+//wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
 
+//update the rate limit of git-hub api
 getRateLimit = () => {
 	return new Promise((resolve, reject) => {
 		HTTP.call("GET",
@@ -48,18 +54,13 @@ getRateLimit = () => {
 	});
 }
 
-var accessToken = GitToken.findOne().token; //please put your personal access token here
-var searchCount = 29; //search api count is 30 calls/min
-var nextSearchReset = 0;
-const bound = Meteor.bindEnvironment((callback) => { callback(); }); //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
-
 Meteor.startup(() => {
 	// code to run on server at startup'
 	if (AllCoins.find({}).fetch().length == 0) {
 		Meteor.call('getCoinListCoinMarketCap'); //get coin list if nothing
 	}
 	SyncedCron.add({
-		name: 'Update CoinList everyday at 0401',
+		name: 'Update CoinList',
 		schedule: function (parser) {
 			// parser is a later.parse object
 			return parser.text('at 00:01 everyday');
@@ -96,14 +97,16 @@ Meteor.startup(() => {
 
 	SyncedCron.start();
 
-	//you can also call the function manually
-
 	//Meteor.call('getCoinListCoinMarketCap');
-	Meteor.call('searchAllGithubRepos');
-    //Meteor.call('getAllCommitCount');
+	//Meteor.call('searchAllGithubRepos');
+	//Meteor.call('getAllCommitCount');
+	
+	//^^^^^^you can also call the function manually^^^^^^^ 
+
 });
 
 Meteor.methods({
+	//get a list of avaliable coin from coin market cap and store it into collection
 	getCoinListCoinMarketCap: () => {
 		console.log("storing coin list");
 		HTTP.call(
@@ -138,6 +141,8 @@ Meteor.methods({
 			}
 		)
 	},
+
+	//Get the github repos by the coin name
 	searchAllGithubRepos: () => {
 		const coinNames = AllCoins.find({}).fetch();
 		searchCount = 30; //reset the search count
@@ -148,6 +153,7 @@ Meteor.methods({
 		date = Date.parse(date);
 		Meteor.call('searchGithubRepos', coinNames, 0, 1, 0, 0, 0,0, date, true);
 	},
+	//Use git hub api the get the coin repos detail and store it into collections 
 	searchGithubRepos: (coinNames, current, pageNumber, star, watcher, fork, open_issue, now, firstCall) => {
 		try {
 			if(firstCall && Githubcount.findOne({ coinSlug: coinNames[current].slug, time: now }) != undefined){
@@ -274,13 +280,14 @@ Meteor.methods({
 			return;
 		}
 	},
+	//Loop through the repo items and search for the past 52 week commits
 	getAllCommitCount: () => {
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
 		var allRepos = Githubitems.find({ }).fetch();
 
-		var interval = 1000; // call between 1 sec.
+		var interval = 1000; // call between 1 sec, as github api recommended
 		var promise = Promise.resolve();
 		allRepos.forEach((repo) => {
 			if(Date.now() - repo.commitsUpdateAt > 604800000 || repo.commitsUpdateAt == undefined){
@@ -304,6 +311,7 @@ Meteor.methods({
 			console.log("done");
 		})
 	},
+	//get the weekly commit count of the past 52 weeks
 	gitHubWeeklyCommits: (repo) => {
 		try{
 		HTTP.get(
