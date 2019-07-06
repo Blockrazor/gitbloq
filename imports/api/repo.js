@@ -10,9 +10,6 @@ export const GitToken = new Mongo.Collection('gitToken');
 
 if (Meteor.isServer) {
   // This code only runs on the server
-  Meteor.publish('githubitems', (date) => {
-    return Githubitems.find({repoUpdatedAt: date},{sort: {stargazers_count: -1}});
-  });
   Meteor.publish('githubcount', (name) => {
     return Githubcount.find({coinSlug: name});
   });

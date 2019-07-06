@@ -29,7 +29,9 @@ var accessToken = GitToken.findOne().token;
 var searchCount = 29; 
 //search api count is 30 calls/min, use 29 to prevent any inaccurate count
 var nextSearchReset = 0;
-const bound = Meteor.bindEnvironment((callback) => { callback(); }); 
+const bound = Meteor.bindEnvironment((callback) => { callback(); });
+var updatingRepo = false;
+var updatingCommit = false;
 //wrap all non-Meteor (NPM packages for example) callbacks into the Fiber
 
 //update the rate limit of git-hub api
@@ -55,6 +57,8 @@ getRateLimit = () => {
 }
 
 Meteor.startup(() => {
+	updatingRepo = false;
+	updatingCommit = false;
 	// code to run on server at startup'
 	if (AllCoins.find({}).fetch().length == 0) {
 		Meteor.call('getCoinListCoinMarketCap'); //get coin list if nothing
@@ -71,7 +75,7 @@ Meteor.startup(() => {
 		name: 'Update git repos',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 00:05 everyday');
+			return parser.text('every 1 hour');
 		},
 		job: () => Meteor.call('searchAllGithubRepos')
 	});
@@ -79,7 +83,7 @@ Meteor.startup(() => {
 		name: 'Update git commits',
 		schedule: function (parser) {
 			// parser is a later.parse object
-			return parser.text('at 00:50 everyday');
+			return parser.text('every 1 hour');
 		},
 		job: () => Meteor.call('getAllCommitCount')
 	});
@@ -97,13 +101,15 @@ Meteor.startup(() => {
 
 	SyncedCron.start();
 
-	//Meteor.call('getCoinListCoinMarketCap');
-	//Meteor.call('searchAllGithubRepos');
-	//Meteor.call('getAllCommitCount');
-	
+	//update repo when boot up
+	Meteor.call('searchAllGithubRepos');
+	Meteor.call('getAllCommitCount');
+
 	//^^^^^^you can also call the function manually^^^^^^^ 
 
 });
+
+
 
 Meteor.methods({
 	//get a list of avaliable coin from coin market cap and store it into collection
@@ -144,10 +150,15 @@ Meteor.methods({
 
 	//Get the github repos by the coin name
 	searchAllGithubRepos: () => {
+		if(updatingRepo){
+			console.log("Already updaing repos, return");
+			return;	
+		}
+		updatingRepo = true;
 		const coinNames = AllCoins.find({}).fetch();
-		searchCount = 30; //reset the search count
+		searchCount = 29; 
+		//search api count is 30 calls/min, use 29 to prevent any inaccurate count
 		nextSearchReset = Date.now() + 60000;
-		//console.log("start getting github repos for " + coinNames[0].slug);
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
@@ -162,6 +173,9 @@ Meteor.methods({
 				Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 				return;
 			}
+			if(firstCall){
+				console.log("start getting github repos for " + coinNames[current].slug);
+				}
 
 			if (searchCount <= 0) {
 				setTimeout(function () {
@@ -251,13 +265,13 @@ Meteor.methods({
 							if (current + 1 <= coinNames.length) {
 								setTimeout(function () {
 									bound(() => {
-										console.log("start getting github repos for " + coinNames[current + 1].slug);
 										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 									});
 								}, 1000);
 								return;
 							}
 							console.log("all coins are updated");
+							updatingRepo = false;
 							return;
 						}
 						setTimeout(function () {
@@ -273,7 +287,6 @@ Meteor.methods({
 			console.log(err);
 			setTimeout(function () {
 				bound(() => {
-					//console.log("start getting github repos again for " + coinNames[current].slug);
 					Meteor.call('searchGithubRepos', coinNames, current, 1, 0, 0, 0, 0, now, true);
 				});
 			}, 1000);
@@ -282,17 +295,22 @@ Meteor.methods({
 	},
 	//Loop through the repo items and search for the past 52 week commits
 	getAllCommitCount: () => {
+		if(updatingCommit){
+			console.log("Already updaing commits, return");
+			return;	
+		}
+		updatingCommit = true;
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var allRepos = Githubitems.find({ }).fetch();
+		var allRepos = Githubitems.find({ repoUpdatedAt: date }).fetch();
 
 		var interval = 1000; // call between 1 sec, as github api recommended
 		var promise = Promise.resolve();
 		allRepos.forEach((repo) => {
 			if(Date.now() - repo.commitsUpdateAt > 604800000 || repo.commitsUpdateAt == undefined){
 			promise = promise.then(() => {
-				//console.log("start getting github repos' commits for " + repo.name);
+				console.log("start getting github repos' commits for " + repo.name);
 				var date = new Date().toGMTString().slice(0, -12);
 				date += "00:00:00 GMT";
 				date = Date.parse(date);
@@ -308,6 +326,7 @@ Meteor.methods({
 			}
 		})
 		promise.then(() => {
+			updatingCommit = false;
 			console.log("done");
 		})
 	},
