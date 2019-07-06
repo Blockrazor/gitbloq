@@ -14,13 +14,13 @@ Template.body.onCreated(function bodyOnCreated() {
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
 	Session.set("slug", "bitcoin");
-	Meteor.subscribe('githubitems', date);
-	Meteor.subscribe('githubcount');
+	Meteor.subscribe('githubcount', Session.get("slug"));
 	Meteor.subscribe('allcoins');
+	Meteor.subscribe('githubitemsPerCoin', date, Session.get("slug"));
 });
 
 
-Template.home.helpers({
+Template.dashboard.helpers({
 	repos() {
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
@@ -71,8 +71,13 @@ Template.coinlist.helpers({
 
 Template.coinlist.events({
 	"change #coinlist": function (evt) {
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
 		var newValue = $(evt.target).val();
 		Session.set("slug", newValue);
+		Meteor.subscribe('githubcount', Session.get("slug"));
+		Meteor.subscribe('githubitemsPerCoin', date, Session.get("slug"));
 	}
 })
 
@@ -85,8 +90,13 @@ Template.coinlistcompare1.helpers({
 
 Template.coinlistcompare1.events({
 	"change #coinlist": function (evt) {
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
 		var newValue = $(evt.target).val();
 		Session.set("compare1", newValue);
+		Meteor.subscribe('githubcount', Session.get("compare1"));
+		Meteor.subscribe('githubitemsPerCoin', date, Session.get("compare1"));
 	}
 })
 
@@ -99,8 +109,13 @@ Template.coinlistcompare2.helpers({
 
 Template.coinlistcompare2.events({
 	"change #coinlist": function (evt) {
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
 		var newValue = $(evt.target).val();
 		Session.set("compare2", newValue);
+		Meteor.subscribe('githubcount', Session.get("compare2"));
+		Meteor.subscribe('githubitemsPerCoin', date, Session.get("compare2"));
 	}
 })
 
@@ -531,7 +546,7 @@ function constructcommitdata() {
 	date = Date.parse(date);
 	// console.log(date);
 	var commits = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1},limit: 10}).fetch();
-	console.log(commits);
+	//console.log(commits);
 	for (const repo of commits) {
 		// console.log(repo);
 		var commits_count =  repo.commits_count;

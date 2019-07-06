@@ -13,13 +13,16 @@ if (Meteor.isServer) {
   Meteor.publish('githubitems', (date) => {
     return Githubitems.find({repoUpdatedAt: date},{sort: {stargazers_count: -1}});
   });
-  Meteor.publish('githubcount', () => {
-    return Githubcount.find();
+  Meteor.publish('githubcount', (name) => {
+    return Githubcount.find({coinSlug: name});
   });
   Meteor.publish('allcoins', () => {
     return AllCoins.find();
   });
   Meteor.publish('gitToken', () => {
     return GitToken.findOne();
+  });
+  Meteor.publish('githubitemsPerCoin', (date, name) => {
+    return Githubitems.find({repoUpdatedAt: date ,coinSlug: name },{sort: {stargazers_count: -1}});
   });
 }
