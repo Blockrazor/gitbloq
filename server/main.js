@@ -101,7 +101,7 @@ Meteor.startup(() => {
 
 	SyncedCron.start();
 
-	//updat
+	//update repo when boot up
 	Meteor.call('searchAllGithubRepos');
 	Meteor.call('getAllCommitCount');
 
@@ -303,14 +303,14 @@ Meteor.methods({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var allRepos = Githubitems.find({ }).fetch();
+		var allRepos = Githubitems.find({ repoUpdatedAt: date }).fetch();
 
 		var interval = 1000; // call between 1 sec, as github api recommended
 		var promise = Promise.resolve();
 		allRepos.forEach((repo) => {
 			if(Date.now() - repo.commitsUpdateAt > 604800000 || repo.commitsUpdateAt == undefined){
 			promise = promise.then(() => {
-				//console.log("start getting github repos' commits for " + repo.name);
+				console.log("start getting github repos' commits for " + repo.name);
 				var date = new Date().toGMTString().slice(0, -12);
 				date += "00:00:00 GMT";
 				date = Date.parse(date);
