@@ -14,7 +14,11 @@ Template.body.onCreated(function bodyOnCreated() {
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
 	Session.set("slug", "bitcoin");
+	Session.set("compare1", "bitcoin");
+	Session.set("compare2", "ethereum");
 	Meteor.subscribe('githubcount', Session.get("slug"));
+	Meteor.subscribe('githubcount', Session.get("compare2"));
+	Meteor.subscribe('githubcount', Session.get("compare1"));
 	Meteor.subscribe('allcoins');
 	Meteor.subscribe('githubitemsPerCoin', date, Session.get("slug"));
 });
@@ -25,7 +29,7 @@ Template.dashboard.helpers({
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
-		var repos = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1}}).fetch();
+		var repos = Githubitems.find({ coinSlug: Session.get("slug") }, { sort: { stargazers_count: -1 } }).fetch();
 		return repos;
 	},
 	coinName() {
@@ -470,9 +474,9 @@ Template.gitOpenIssueChart.rendered = function () {
 			).call(chart);
 			chart.update();
 		});
-	} catch(error){
+	} catch (error) {
 		console.log(error);
-	 }
+	}
 };
 
 function constructOpenIssueData() {
@@ -498,24 +502,24 @@ function constructOpenIssueData() {
 Template.gitcommitchart.rendered = function () {
 	try {
 		var chart = nv.models.stackedAreaChart()
-		.margin({right: 100})
-		.x(function (d) {
-			return (new Date(d[0]))
-		})   //We can modify the data accessor functions...
-		.y(function(d) { return d[1] })   //...in case your data is formatted differently.
-		.useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
-		.rightAlignYAxis(true)      //Let's move the y-axis to the right side.
-		.transitionDuration(500)
-		.showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
-		.clipEdge(true);
-		nv.addGraph(function() {
-		
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { return d[1] })   //...in case your data is formatted differently.
+			.useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
+			.rightAlignYAxis(true)      //Let's move the y-axis to the right side.
+			.transitionDuration(500)
+			.showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
+			.clipEdge(true);
+		nv.addGraph(function () {
+
 			//Format x-axis labels with custom function.
 			chart.xAxis.axisLabel('Date').tickFormat(
 				function (d) {
 					return d3.time.format('%x')(new Date(d))
 				});
-		
+
 			chart.yAxis
 				.tickFormat(d3.format(',.2f'));
 
@@ -534,7 +538,7 @@ Template.gitcommitchart.rendered = function () {
 			).call(chart);
 			chart.update();
 		});
-	} catch(error){ 
+	} catch (error) {
 		console.log(error);
 	}
 };
@@ -545,14 +549,14 @@ function constructcommitdata() {
 	date += "00:00:00 GMT";
 	date = Date.parse(date);
 	// console.log(date);
-	var commits = Githubitems.find({ coinSlug: Session.get("slug")},{sort: {stargazers_count: -1},limit: 10}).fetch();
+	var commits = Githubitems.find({ coinSlug: Session.get("slug") }, { sort: { stargazers_count: -1 }, limit: 10 }).fetch();
 	//console.log(commits);
 	for (const repo of commits) {
 		// console.log(repo);
-		var commits_count =  repo.commits_count;
+		var commits_count = repo.commits_count;
 		var values = [];
 		commits_count.forEach((element, index) => {
-			values.push([date - (604800000* (52 - index)) ,element]);
+			values.push([date - (604800000 * (52 - index)), element]);
 		});
 		data.push(
 			{
@@ -563,3 +567,359 @@ function constructcommitdata() {
 	// console.log(data);
 	return data;
 }
+
+
+Template.gitcommitchart.rendered = function () {
+	try {
+		var chart = nv.models.stackedAreaChart()
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { return d[1] })   //...in case your data is formatted differently.
+			.useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
+			.rightAlignYAxis(true)      //Let's move the y-axis to the right side.
+			.transitionDuration(500)
+			.showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
+			.clipEdge(true);
+		nv.addGraph(function () {
+
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructcommitdata();
+			d3.select('#commitchart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructcommitdata();
+			d3.select('#commitchart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+function constructcommitdata() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	// console.log(date);
+	var commits = Githubitems.find({ coinSlug: Session.get("slug") }, { sort: { stargazers_count: -1 }, limit: 10 }).fetch();
+	//console.log(commits);
+	for (const repo of commits) {
+		// console.log(repo);
+		var commits_count = repo.commits_count;
+		var values = [];
+		commits_count.forEach((element, index) => {
+			values.push([date - (604800000 * (52 - index)), element]);
+		});
+		data.push(
+			{
+				key: repo.name,
+				values: values,
+			})
+	}
+	// console.log(data);
+	return data;
+}
+
+
+
+Template.compareRepo.rendered = function () {
+	try {
+		var chart = nv.models.lineChart()
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { if (d[1] != undefined) { return d[1] } else { return 0 } })   //...in case your data is formatted differently.
+		nv.addGraph(function () {
+
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructCompareRepoData();
+			d3.select('#compareRepoChart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructCompareRepoData();
+			d3.select('#compareRepoChart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch (error) {
+		// console.log(error);
+	}
+};
+
+function constructCompareRepoData() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	var compare1data = Githubcount.find({ coinSlug: Session.get("compare1") }).fetch();
+	var c1counts = [];
+	for (const c1 of compare1data) {
+		// console.log(c1);
+		c1counts.push([c1.time, c1.repoTotalCount]);
+	}
+	var compare2data = Githubcount.find({ coinSlug: Session.get("compare2") }).fetch();
+	var c2counts = [];
+	for (const c2 of compare2data) {
+		// console.log(c2);
+		c2counts.push([c2.time, c2.repoTotalCount]);
+	}
+
+	data.push(
+		{
+			key: Session.get("compare1"),
+			values: c1counts,
+		})
+	data.push(
+		{
+			key: Session.get("compare2"),
+			values: c2counts,
+		})
+	// console.log(data);
+	return data;
+}
+
+
+
+Template.compareStar.rendered = function () {
+	try {
+		var chart = nv.models.lineChart()
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { if (d[1] != undefined) { return d[1] } else { return 0 } })   //...in case your data is formatted differently.
+		nv.addGraph(function () {
+
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructCompareStarData();
+			d3.select('#compareStarChart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructCompareStarData();
+			d3.select('#compareStarChart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch (error) {
+		// console.log(error);
+	}
+};
+
+function constructCompareStarData() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	var compare1data = Githubcount.find({ coinSlug: Session.get("compare1") }).fetch();
+	var c1counts = [];
+	for (const c1 of compare1data) {
+		// console.log(c1);
+		c1counts.push([c1.time, c1.stargazers_count]);
+	}
+	var compare2data = Githubcount.find({ coinSlug: Session.get("compare2") }).fetch();
+	var c2counts = [];
+	for (const c2 of compare2data) {
+		// console.log(c2);
+		c2counts.push([c2.time, c2.stargazers_count]);
+	}
+	data.push(
+		{
+			key: Session.get("compare1"),
+			values: c1counts,
+		})
+	data.push(
+		{
+			key: Session.get("compare2"),
+			values: c2counts,
+		})
+	// console.log(data);
+	return data;
+}
+
+Template.compareFork.rendered = function () {
+	try {
+		var chart = nv.models.lineChart()
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { if (d[1] != undefined) { return d[1] } else { return 0 } })   //...in case your data is formatted differently.
+		nv.addGraph(function () {
+
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructCompareForkData();
+			d3.select('#compareForkChart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructCompareForkData();
+			d3.select('#compareForkChart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch (error) {
+		// console.log(error);
+	}
+};
+
+function constructCompareForkData() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	var compare1data = Githubcount.find({ coinSlug: Session.get("compare1") }).fetch();
+	var c1counts = [];
+	for (const c1 of compare1data) {
+		// console.log(c1);
+		c1counts.push([c1.time, c1.forks_count]);
+	}
+	var compare2data = Githubcount.find({ coinSlug: Session.get("compare2") }).fetch();
+	var c2counts = [];
+	for (const c2 of compare2data) {
+		// console.log(c2);
+		c2counts.push([c2.time, c2.forks_count]);
+	}
+	data.push(
+		{
+			key: Session.get("compare1"),
+			values: c1counts,
+		})
+	data.push(
+		{
+			key: Session.get("compare2"),
+			values: c2counts,
+		})
+	// console.log(data);
+	return data;
+}
+
+Template.compareOpenIssue.rendered = function () {
+	try {
+		var chart = nv.models.lineChart()
+			.margin({ right: 100 })
+			.x(function (d) {
+				return (new Date(d[0]))
+			})   //We can modify the data accessor functions...
+			.y(function (d) { if (d[1] != undefined) { return d[1] } else { return 0 } })   //...in case your data is formatted differently.
+		nv.addGraph(function () {
+
+			//Format x-axis labels with custom function.
+			chart.xAxis.axisLabel('Date').tickFormat(
+				function (d) {
+					return d3.time.format('%x')(new Date(d))
+				});
+
+			chart.yAxis
+				.tickFormat(d3.format(',.2f'));
+
+			var repoData = constructCompareOpenIssueData();
+			d3.select('#compareOpenIssueChart svg').datum(
+				repoData
+			).call(chart);
+			nv.utils.windowResize(function () { chart.update(); });
+			return chart;
+		});
+
+		this.autorun(function () {
+			var repoData = constructCompareOpenIssueData();
+			d3.select('#compareOpenIssueChart svg').datum(
+				repoData
+			).call(chart);
+			chart.update();
+		});
+	} catch (error) {
+		// console.log(error);
+	}
+};
+
+function constructCompareOpenIssueData() {
+	var data = [];
+	var date = new Date().toGMTString().slice(0, -12);
+	date += "00:00:00 GMT";
+	date = Date.parse(date);
+	var compare1data = Githubcount.find({ coinSlug: Session.get("compare1") }).fetch();
+	var c1counts = [];
+	for (const c1 of compare1data) {
+		// console.log(c1);
+		c1counts.push([c1.time, c1.open_issues_count]);
+	}
+	var compare2data = Githubcount.find({ coinSlug: Session.get("compare2") }).fetch();
+	var c2counts = [];
+	for (const c2 of compare2data) {
+		// console.log(c2);
+		c2counts.push([c2.time, c2.open_issues_count]);
+	}
+	data.push(
+		{
+			key: Session.get("compare1"),
+			values: c1counts,
+		})
+	data.push(
+		{
+			key: Session.get("compare2"),
+			values: c2counts,
+		})
+	// console.log(data);
+	return data;
+}
+

@@ -170,7 +170,11 @@ Meteor.methods({
 			if(firstCall && Githubcount.findOne({ coinSlug: coinNames[current].slug, time: now }) != undefined){
 				//console.log(coinNames[current].slug + " is already updated today.");
 				//console.log("start getting github repos for " + coinNames[current + 1].slug);
-				Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
+				setTimeout(function () {
+					bound(() => {
+						Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
+					});
+				}, 0);
 				return;
 			}
 			if(firstCall){
@@ -318,8 +322,7 @@ Meteor.methods({
 				return new Promise(function (resolve) {
 					setTimeout(resolve, interval);
 				});
-			}
-			)
+			})
 			}
 			else{
 				//console.log(repo.name + " is updated within a week.")
