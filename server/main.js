@@ -102,8 +102,12 @@ Meteor.startup(() => {
 	SyncedCron.start();
 
 	//update repo when boot up
-	Meteor.call('searchAllGithubRepos');
-	Meteor.call('getAllCommitCount');
+	getRateLimit().then((data) => {
+		searchCount = (data.resources.search.remaining);
+		nextSearchReset = (data.resources.search.reset * 1000);
+		Meteor.call('searchAllGithubRepos');
+		Meteor.call('getAllCommitCount');
+	}).catch();
 
 	//^^^^^^you can also call the function manually^^^^^^^ 
 
@@ -156,9 +160,6 @@ Meteor.methods({
 		}
 		updatingRepo = true;
 		const coinNames = AllCoins.find({}).fetch();
-		searchCount = 29; 
-		//search api count is 30 calls/min, use 29 to prevent any inaccurate count
-		nextSearchReset = Date.now() + 60000;
 		var date = new Date().toGMTString().slice(0, -12);
 		date += "00:00:00 GMT";
 		date = Date.parse(date);
@@ -169,7 +170,6 @@ Meteor.methods({
 		try {
 			if(firstCall && Githubcount.findOne({ coinSlug: coinNames[current].slug, time: now }) != undefined){
 				//console.log(coinNames[current].slug + " is already updated today.");
-				//console.log("start getting github repos for " + coinNames[current + 1].slug);
 				setTimeout(function () {
 					bound(() => {
 						Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
@@ -246,7 +246,6 @@ Meteor.methods({
 						} catch (error) {
 
 						}
-
 						if (nextUrl == undefined) {
 							Githubcount.upsert({
 								coinSlug: coinNames[current].slug,
@@ -271,7 +270,7 @@ Meteor.methods({
 									bound(() => {
 										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
 									});
-								}, 1000);
+								}, 0);
 								return;
 							}
 							console.log("all coins are updated");
@@ -282,7 +281,7 @@ Meteor.methods({
 							bound(() => {
 								Meteor.call('searchGithubRepos', coinNames, current, pageNumber + 1, tmpstar, tmpwatcher, tmpfork, tmpOpenIssue ,now, false);
 							});
-						}, 1000);
+						}, 0);
 					}
 				}
 			);
@@ -293,7 +292,7 @@ Meteor.methods({
 				bound(() => {
 					Meteor.call('searchGithubRepos', coinNames, current, 1, 0, 0, 0, 0, now, true);
 				});
-			}, 1000);
+			}, 0);
 			return;
 		}
 	},
@@ -330,7 +329,7 @@ Meteor.methods({
 		})
 		promise.then(() => {
 			updatingCommit = false;
-			console.log("done");
+			console.log("done updating commits");
 		})
 	},
 	//get the weekly commit count of the past 52 weeks
