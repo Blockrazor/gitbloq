@@ -6,8 +6,9 @@
       </div>
       <div class="collapse navbar-collapse" id="myNavbar">
         <ul class="nav navbar-nav">
-          <li class="active"><a href="dashboard">Dashboard</a></li>
+          <li><a href="dashboard">Dashboard</a></li>
           <li><a href="compare">Compare</a></li>
+          <li><a href="ranking">Ranking</a></li>
         </ul>
       </div>
     </div>
@@ -24,6 +25,30 @@
 <template name="App_body">
   <div class="col-sm-12">
     {{> Template.dynamic template=main}}
+  </div>
+</template>
+
+
+<template name="ranking">
+  <div class="form-group">
+    <label for="rankingSort">Sort By:</label>
+    <select class="form-control" id="rankingSort">
+      <option>Total Repos</option>
+      <option>Total Stars</option>
+      <option>Total Forks</option>
+      <option>Total Open Issues</option>
+    </select>
+  </div>
+  <div class="list-group">
+      {{#each Ranking}}
+      <div class="list-group-item">
+      <h3 class="list-group-item-heading">#{{index}} {{value.coinSlug}}</h3>
+      <p class="list-group-item-text">Repos: {{value.repoTotalCount}}</p>
+      <p class="list-group-item-text">Stars: {{value.stargazers_count}}</p>
+      <p class="list-group-item-text">Forks: {{value.forks_count}}</p>
+      <p class="list-group-item-text">Open Issues: {{value.open_issues_count}}</p>
+      </div>
+      {{/each}}
   </div>
 </template>
 

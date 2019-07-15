@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Promise } from "meteor/promise";
-import {  Githubcount, Githubitems, AllCoins, GitToken } from '../imports/api/repo.js';
+import {  Githubcount, Githubitems, AllCoins, GitToken , GithubRanking} from '../imports/api/repo.js';
 
 
 function parse_link_header(header) {
@@ -107,6 +107,7 @@ Meteor.startup(() => {
 		nextSearchReset = (data.resources.search.reset * 1000);
 		Meteor.call('searchAllGithubRepos');
 		Meteor.call('getAllCommitCount');
+		Meteor.call('gitHubRanking');
 	}).catch();
 
 	//^^^^^^you can also call the function manually^^^^^^^ 
@@ -368,5 +369,19 @@ Meteor.methods({
 				});
 			}, 1000);
 		}
+	},
+	gitHubRanking:()=>{
+		var date = new Date().toGMTString().slice(0, -12);
+		date += "00:00:00 GMT";
+		date = Date.parse(date);
+		var Counts = Githubcount.find({time: date}).fetch();
+		GithubRanking.upsert({
+			time: date,
+		},
+		{
+				time: date,
+				repos: Counts,
+		}
+		);
 	},
 })
