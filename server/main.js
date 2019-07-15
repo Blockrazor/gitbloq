@@ -265,7 +265,7 @@ Meteor.methods({
 								{ multi: true }
 							);
 							console.log("end for " + coinNames[current].slug);
-							if (current + 1 <= coinNames.length) {
+							if (current + 1 < coinNames.length) {
 								setTimeout(function () {
 									bound(() => {
 										Meteor.call('searchGithubRepos', coinNames, current + 1, 1, 0, 0, 0, 0, now, true);
