@@ -1,8 +1,6 @@
 import { Template } from 'meteor/templating';
 
-import { Githubitems } from '../api/repo.js';
-import { Githubcount } from '../api/repo.js';
-import { AllCoins } from '../api/repo.js';
+import { Githubitems, GithubRanking, Githubcount, AllCoins } from '../api/repo.js';
 
 import './body.html';
 
@@ -16,13 +14,14 @@ Template.body.onCreated(function bodyOnCreated() {
 	Session.set("slug", "bitcoin");
 	Session.set("compare1", "bitcoin");
 	Session.set("compare2", "ethereum");
+	Session.set("rankingSort", "Total Repos");
 	Meteor.subscribe('githubcount', Session.get("slug"));
 	Meteor.subscribe('githubcount', Session.get("compare2"));
 	Meteor.subscribe('githubcount', Session.get("compare1"));
 	Meteor.subscribe('allcoins');
 	Meteor.subscribe('githubitemsPerCoin', date, Session.get("slug"));
+	Meteor.subscribe('gitRanking', date);
 });
-
 
 Template.dashboard.helpers({
 	repos() {
@@ -189,6 +188,47 @@ Template.compare.helpers({
 	},
 });
 
+Template.ranking.events({
+	"change #rankingSort": function (evt) {
+		var newValue = $(evt.target).val();
+		Session.set("rankingSort", newValue);
+	}
+})
+
+
+Template.ranking.helpers({
+	Ranking() {
+		try {
+			var date = new Date().toGMTString().slice(0, -12);
+			date += "00:00:00 GMT";
+			date = Date.parse(date);
+			switch (Session.get("rankingSort")) {
+				case "Total Repos":
+					var arr = GithubRanking.findOne({ time: date }).repos.sort((a, b) => parseFloat(b.repoTotalCount) - parseFloat(a.repoTotalCount));
+					return _.map(arr, function(value, index){
+					  return {value: value, index: index + 1};
+					});
+				case "Total Stars":
+					var arr = GithubRanking.findOne({ time: date }).repos.sort((a, b) => parseFloat(b.stargazers_count) - parseFloat(a.stargazers_count));
+					return _.map(arr, function(value, index){
+						return {value: value, index: index + 1};
+					  });
+				case "Total Forks":
+					var arr = GithubRanking.findOne({ time: date }).repos.sort((a, b) => parseFloat(b.forks_count) - parseFloat(a.forks_count));
+					return _.map(arr, function(value, index){
+						return {value: value, index: index + 1};
+					  });
+				case "Total Open Issues":
+					var arr =  GithubRanking.findOne({ time: date }).repos.sort((a, b) => parseFloat(b.open_issues_count) - parseFloat(a.open_issues_count));
+					return _.map(arr, function(value, index){
+						return {value: value, index: index + 1};
+					  });
+				}
+		} catch (err) {
+
+		}
+	},
+})
 
 
 
