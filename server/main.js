@@ -98,6 +98,14 @@ Meteor.startup(() => {
 			nextSearchReset = (data.resources.search.reset * 1000);
 		}).catch()
 	});
+	SyncedCron.add({
+		name: 'Update git Hub Ranking',
+		schedule: function (parser) {
+			// parser is a later.parse object
+			return parser.text('every 30 minutes');
+		},
+		job: () => Meteor.call('gitHubRanking')
+	});
 
 	SyncedCron.start();
 
