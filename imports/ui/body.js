@@ -68,7 +68,7 @@ Template.dashboard.helpers({
 Template.coinlist.helpers({
 	Allcoins() {
 		// console.log(AllCoins.find({}).fetch());
-		return AllCoins.find({}).fetch();
+		return AllCoins.find({}, { sort: { slug: 1 } }).fetch();
 	}
 })
 
@@ -87,7 +87,7 @@ Template.coinlist.events({
 Template.coinlistcompare1.helpers({
 	Allcoins() {
 		// console.log(AllCoins.find({}).fetch());
-		return AllCoins.find({}).fetch();
+		return AllCoins.find({}, { sort: { slug: 1 }}).fetch();
 	}
 })
 
@@ -106,7 +106,7 @@ Template.coinlistcompare1.events({
 Template.coinlistcompare2.helpers({
 	Allcoins() {
 		// console.log(AllCoins.find({}).fetch());
-		return AllCoins.find({}).fetch();
+		return AllCoins.find({}, { sort: { slug: 1 }}).fetch();
 	}
 })
 

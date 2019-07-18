@@ -346,7 +346,7 @@ Meteor.methods({
 		var tmpwatcher = watcher;
 		var tmpfork = fork;
 		var tmpOpenIssue = open_issue;
-		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
+		var url = "https://api.github.com/search/repositories?q=" + coinSlug + "+in:readme&sort=stars&order=desc&page=" + pageNumber + "&per_page=100";
 		HTTP.call("GET",
 			url,
 			{
@@ -362,6 +362,10 @@ Meteor.methods({
 					return;
 				}
 				if (resp && resp.statusCode === 200) {
+					if(resp.data.total_count >= 60000){
+						console.log("unusual data, cancel for "+ coinSlug);
+						return;
+					}
 					// Insert each repo into the repos collection
 					for (const repo of resp.data.items) {
 						//update the mongodatabase for the repo
