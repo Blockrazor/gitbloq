@@ -202,6 +202,10 @@ Template.ranking.helpers({
 			var date = new Date().toGMTString().slice(0, -12);
 			date += "00:00:00 GMT";
 			date = Date.parse(date);
+			if(GithubRanking.findOne({time: date}) == undefined){
+				date -= 86400000;
+				Meteor.subscribe('gitRanking', date);
+			}
 			switch (Session.get("rankingSort")) {
 				case "Total Repos":
 					var arr = GithubRanking.findOne({ time: date }).repos.sort((a, b) => parseFloat(b.repoTotalCount) - parseFloat(a.repoTotalCount));
