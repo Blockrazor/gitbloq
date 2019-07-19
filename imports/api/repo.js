@@ -15,7 +15,7 @@ if (Meteor.isServer) {
     return Githubcount.find({coinSlug: name});
   });
   Meteor.publish('allcoins', () => {
-    return AllCoins.find();
+    return AllCoins.find({}, {skip: 0, limit: 2000});
   });
   Meteor.publish('gitToken', () => {
     return GitToken.findOne();
