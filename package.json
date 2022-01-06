@@ -11,7 +11,7 @@
     "@babel/runtime": "^7.1.5",
     "meteor-node-stubs": "^0.4.1",
     "meteor-promise": "^0.8.7",
-    "parse-link-header": "^1.0.1",
+    "parse-link-header": "^2.0.0",
     "randomcolor": "^0.5.4"
   },
   "meteor": {
